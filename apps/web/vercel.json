@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/api/(.*)",
+            "destination": "https://manah-tracking-api.vercel.app"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }
