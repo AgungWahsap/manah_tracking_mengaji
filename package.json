@@ -1,0 +1,20 @@
+{
+  "name": "manah-tracking-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=apps/api\" \"npm run dev --workspace=apps/web\"",
+    "build": "npm run build --workspaces",
+    "build:prod": "npm run build --workspaces",
+    "start:prod": "npm run start --workspace=apps/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "drizzle-orm": "^0.45.1",
+    "pg": "^8.18.0",
+    "tsx": "^4.21.0"
+  }
+}

@@ -1,0 +1,160 @@
+--- START ---
+--- Checking Prayer Times ---
+[
+  {
+    "id": "a00de741-2d88-4e94-a509-5c6eb9037c96",
+    "name": "subuh",
+    "scheduledTime": "04:30:00",
+    "offsetMinutes": 15,
+    "updatedAt": "2026-02-11T16:57:19.696Z"
+  },
+  {
+    "id": "6c574175-e5e2-41f8-86ed-9a045ac2c19b",
+    "name": "ashar",
+    "scheduledTime": "15:30:00",
+    "offsetMinutes": 10,
+    "updatedAt": "2026-02-11T16:57:19.707Z"
+  },
+  {
+    "id": "1b77c990-e491-43fa-a54c-0ede4fbb815f",
+    "name": "isya",
+    "scheduledTime": "19:30:00",
+    "offsetMinutes": 15,
+    "updatedAt": "2026-02-11T16:57:19.712Z"
+  },
+  {
+    "id": "3c474495-d173-4a98-bd78-7f325816f5eb",
+    "name": "dzuhur",
+    "scheduledTime": "12:15:00",
+    "offsetMinutes": 10,
+    "updatedAt": "2026-02-11T16:57:19.705Z"
+  },
+  {
+    "id": "7dbdf767-c214-4f8c-8041-506abe31fcaa",
+    "name": "maghrib",
+    "scheduledTime": "18:00:00",
+    "offsetMinutes": 15,
+    "updatedAt": "2026-02-11T16:57:19.710Z"
+  }
+]
+
+--- Checking Users ---
+[
+  {
+    "id": "c4633207-1e33-47e3-bc41-361aa66a1078",
+    "name": "Admin Pesantren",
+    "email": "admin@manahtracking.com",
+    "emailVerified": false,
+    "image": null,
+    "createdAt": "2026-02-11T16:57:19.732Z",
+    "updatedAt": "2026-02-11T16:57:19.732Z",
+    "phone": null,
+    "nis": null,
+    "address": null,
+    "role": "admin",
+    "category": null,
+    "status": "active",
+    "waliName": null,
+    "deviceId": null,
+    "asramaId": null,
+    "joinedAt": "2026-02-11T16:57:19.732Z"
+  },
+  {
+    "id": "fc043a8b-55b9-426b-bd0f-25c3359e8cb9",
+    "name": "Ustadz Agung2",
+    "email": "agung.wahidin31@gmail.com",
+    "emailVerified": false,
+    "image": null,
+    "createdAt": "2026-02-14T07:36:04.338Z",
+    "updatedAt": "2026-02-14T07:36:04.338Z",
+    "phone": null,
+    "nis": "124",
+    "address": null,
+    "role": "staff",
+    "category": "Pengajar",
+    "status": "active",
+    "waliName": null,
+    "deviceId": null,
+    "asramaId": null,
+    "joinedAt": "2026-02-14T07:36:04.338Z"
+  },
+  {
+    "id": "75765c44-b9c9-4a08-9752-9e08b290672a",
+    "name": "Ustadz Agung",
+    "email": "wahsapers@gmail.com",
+    "emailVerified": false,
+    "image": null,
+    "createdAt": "2026-02-14T07:10:11.538Z",
+    "updatedAt": "2026-02-14T08:57:14.341Z",
+    "phone": "083843207900",
+    "nis": "123",
+    "address": "di hati",
+    "role": "santri",
+    "category": "Ustadz",
+    "status": "active",
+    "waliName": "",
+    "deviceId": null,
+    "asramaId": null,
+    "joinedAt": "2026-02-14T07:10:11.538Z"
+  }
+]
+
+--- Checking Global Recap ---
+Recap Keys: date,prayerTimes,stats,data,pagination
+Recap Data Length: 3
+First Row Sample:
+{
+  "user": {
+    "id": "c4633207-1e33-47e3-bc41-361aa66a1078",
+    "name": "Admin Pesantren",
+    "nis": null,
+    "role": "admin",
+    "image": null
+  },
+  "attendance": {
+    "subuh": {
+      "status": "pending"
+    },
+    "dzuhur": {
+      "status": "pending"
+    },
+    "ashar": {
+      "status": "pending"
+    },
+    "maghrib": {
+      "status": "pending"
+    },
+    "isya": {
+      "status": "pending"
+    }
+  },
+  "permit": null
+}
+Prayer Times in Recap:
+[
+  {
+    "id": "a00de741-2d88-4e94-a509-5c6eb9037c96",
+    "name": "subuh",
+    "scheduledTime": "04:30:00"
+  },
+  {
+    "id": "3c474495-d173-4a98-bd78-7f325816f5eb",
+    "name": "dzuhur",
+    "scheduledTime": "12:15:00"
+  },
+  {
+    "id": "6c574175-e5e2-41f8-86ed-9a045ac2c19b",
+    "name": "ashar",
+    "scheduledTime": "15:30:00"
+  },
+  {
+    "id": "7dbdf767-c214-4f8c-8041-506abe31fcaa",
+    "name": "maghrib",
+    "scheduledTime": "18:00:00"
+  },
+  {
+    "id": "1b77c990-e491-43fa-a54c-0ede4fbb815f",
+    "name": "isya",
+    "scheduledTime": "19:30:00"
+  }
+]
