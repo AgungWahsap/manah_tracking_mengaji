@@ -7,9 +7,15 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 
 // Resolve exports directory relative to project root
+// Resolve exports directory relative to project root
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const EXPORTS_DIR = path.resolve(__dirname, "../../exports");
+
+// Check if running in Vercel/Production
+const isVercel = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
+const EXPORTS_DIR = isVercel
+    ? path.join('/tmp', 'exports')
+    : path.resolve(__dirname, "../../exports");
 
 // Ensure exports directory exists
 if (!fs.existsSync(EXPORTS_DIR)) {
