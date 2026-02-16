@@ -2,7 +2,7 @@
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "https://manah-tracking-api.vercel.app"
+            "destination": "https://manah-tracking-api.vercel.app/api/$1"
         },
         {
             "source": "/(.*)",
