@@ -18,10 +18,13 @@ const PORT = process.env.PORT || 3001;
 app.use(helmet());
 
 // CORS - allow frontend origin
+// Pastikan FRONTEND_URL di .env Vercel backend kamu sudah benar!
 app.use(
     cors({
         origin: process.env.FRONTEND_URL || "http://localhost:5173",
         credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // Tambahkan ini agar lebih aman
+        allowedHeaders: ["Content-Type", "Authorization"],
     })
 );
 
@@ -32,7 +35,12 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Health Check ────────────────────────────────────────────────────
+// ─── Health Check & Root ─────────────────────────────────────────────
+
+// Tambahkan route "/" sederhana agar kalau dibuka di browser tidak 404
+app.get("/", (_req, res) => {
+    res.send("🚀 Manah Tracking API is Running!");
+});
 
 app.get("/api/health", (_req, res) => {
     res.json({
@@ -47,7 +55,10 @@ app.get("/api/health", (_req, res) => {
 
 // ─── API Routes ──────────────────────────────────────────────────────
 
+// Semua route API masuk ke sini
 app.use("/api", apiRoutes);
+// Khusus Better Auth jika path-nya belum tercover di apiRoutes
+// app.use("/api/auth", ...); // (Biasanya sudah ada di dalam apiRoutes)
 
 // ─── Error Handler (must be last) ────────────────────────────────────
 
@@ -55,36 +66,12 @@ app.use(errorHandler);
 
 // ─── Start Server ────────────────────────────────────────────────────
 
+// Vercel akan menangani ini secara otomatis, tapi biarkan untuk local dev
 app.listen(PORT, () => {
     console.log(`\n🚀 Manah Tracking API running on http://localhost:${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
     console.log(`🔧 Environment: ${process.env.NODE_ENV || "development"}\n`);
 });
 
-// ─── Static Files (Production Only) ──────────────────────────────────
-// Serve frontend files if in production or if explicitly requested
-if (process.env.NODE_ENV === 'production' || process.env.SERVE_STATIC === 'true') {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-
-    // Assuming structure: apps/api/src/index.ts -> build -> apps/api/dist/index.js
-    // We want to reach apps/web/dist from apps/api
-    // Using process.cwd() is safer if we always run from apps/api root
-    const clientBuildPath = path.join(process.cwd(), '../web/dist');
-
-    console.log(`📂 Serving static files from: ${clientBuildPath}`);
-
-    app.use(express.static(clientBuildPath));
-
-    // Catch-all route for SPA (must be after API routes)
-    app.get('*', (req, res) => {
-        // Don't intercept API calls that weren't caught
-        if (req.path.startsWith('/api')) {
-            return res.status(404).json({ success: false, error: { message: "API endpoint not found" } });
-        }
-        res.sendFile(path.join(clientBuildPath, 'index.html'));
-    });
-}
-
+// PENTING: Export default app agar Vercel bisa membacanya sebagai Serverless Function
 export default app;
-
