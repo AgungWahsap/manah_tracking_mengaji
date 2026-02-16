@@ -33,9 +33,8 @@ export const auth = betterAuth({
     ],
 
     // Baris di bawah ini berfungsi untuk MEMBUNGKAM error merah di editor
-    // @ts-ignore 
     advanced: {
-        cookie: {
+        defaultCookieAttributes: {
             secure: true,
             sameSite: "none",
             httpOnly: true
