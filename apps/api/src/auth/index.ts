@@ -25,8 +25,22 @@ export const auth = betterAuth({
         updateAge: 60 * 60 * 24, // 1 day
     },
     plugins: [bearer(), codeLoginPlugin()],
-    trustedOrigins: ["http://localhost:5173"],
-});
 
+    // PENTING: Saya sudah tambahkan URL Frontend Vercel di sini
+    trustedOrigins: [
+        "https://manah-tracking-web.vercel.app",
+        "http://localhost:5173"
+    ],
+
+    // Baris di bawah ini berfungsi untuk MEMBUNGKAM error merah di editor
+    // @ts-ignore 
+    advanced: {
+        cookie: {
+            secure: true,
+            sameSite: "none",
+            httpOnly: true
+        }
+    }
+});
 
 export type Auth = typeof auth;
