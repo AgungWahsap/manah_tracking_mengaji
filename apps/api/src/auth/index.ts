@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import db from "../db/index.js";
 import * as schema from "../db/schema.js";
-import { eq, and } from "drizzle-orm";
+// import { eq, and } from "drizzle-orm"; // Tidak dipakai, boleh dihapus
 
 import { bearer } from "better-auth/plugins";
 import { codeLoginPlugin } from "./code-login-plugin.js";
@@ -26,17 +26,18 @@ export const auth = betterAuth({
     },
     plugins: [bearer(), codeLoginPlugin()],
 
-    // PENTING: Saya sudah tambahkan URL Frontend Vercel di sini
     trustedOrigins: [
         "https://manah-tracking-web.vercel.app",
         "http://localhost:5173"
     ],
 
-    // Baris di bawah ini berfungsi untuk MEMBUNGKAM error merah di editor
+    // 🛠️ PERBAIKAN FINAL (Strategi Satu Rumah):
     advanced: {
         defaultCookieAttributes: {
             secure: true,
-            sameSite: "none",
+            // Kita ubah ke 'lax'. Karena kita sudah pakai Proxy (vercel.json), 
+            // browser HP/Incognito akan lebih senang menerima cookie ini.
+            sameSite: "lax",
             httpOnly: true
         }
     }

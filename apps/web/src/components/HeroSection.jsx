@@ -303,15 +303,48 @@ const HeroSection = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="mt-6 md:mt-0 md:ml-6 flex items-center justify-center md:justify-end">
-                        <div className="relative w-32 h-32 flex items-center justify-center">
-                            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" fill="none" r="45" stroke="rgba(255,255,255,0.1)" strokeWidth="8"></circle>
-                                <circle cx="50" cy="50" fill="none" r="45" stroke="#D4AF37" strokeDasharray="283" strokeDashoffset="70" strokeLinecap="round" strokeWidth="8"></circle>
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="material-icons-round text-4xl text-white">wb_sunny</span>
-                            </div>
+                    <div className="mt-6 md:mt-0 md:ml-6 flex-1 flex flex-col justify-center">
+                        {/* Prayer Times List */}
+                        <div className="space-y-2">
+                            {prayerTimes.length > 0 ? (
+                                prayerTimes.map((prayer) => {
+                                    const isActive = activePrayer && activePrayer.id === prayer.id;
+                                    const isNext = nextPrayer && nextPrayer.id === prayer.id;
+
+                                    return (
+                                        <div
+                                            key={prayer.id}
+                                            className={`flex items-center justify-between px-3 py-2 rounded-lg transition-all ${isActive
+                                                    ? 'bg-gradient-to-r from-accent-gold/20 to-transparent border-l-2 border-accent-gold'
+                                                    : isNext
+                                                        ? 'bg-white/10 border-l-2 border-white/50'
+                                                        : 'hover:bg-white/5 border-l-2 border-transparent'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <span className={`material-icons-round text-sm ${isActive || isNext ? 'text-accent-gold' : 'text-gray-500'}`}>
+                                                    {prayer.name.toLowerCase().includes('subuh') ? 'wb_twilight' :
+                                                        prayer.name.toLowerCase().includes('dzuhur') || prayer.name.toLowerCase().includes('zuhur') ? 'wb_sunny' :
+                                                            prayer.name.toLowerCase().includes('ashar') ? 'wb_cloudy' :
+                                                                prayer.name.toLowerCase().includes('maghrib') ? 'routine' :
+                                                                    'nights_stay'}
+                                                </span>
+                                                <span className={`text-sm font-medium ${isActive || isNext ? 'text-white' : 'text-gray-400'}`}>
+                                                    {prayer.name}
+                                                </span>
+                                            </div>
+                                            <span className={`text-sm font-mono ${isActive || isNext ? 'text-white font-bold' : 'text-gray-500'}`}>
+                                                {prayer.scheduledTime?.substring(0, 5)}
+                                            </span>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <div className="text-center text-gray-400 text-sm py-4">
+                                    <span className="material-icons-round animate-spin mb-2">sync</span>
+                                    <p>Memuat jadwal...</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
