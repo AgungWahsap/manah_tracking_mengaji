@@ -40,8 +40,8 @@ export const attendanceService = {
      * Record a check-in (HADIR) for a user
      */
     async checkIn(userId: string, data: CheckInData) {
-        const today = new Date().toISOString().split("T")[0];
-        const now = new Date().toTimeString().split(" ")[0]; // HH:MM:SS
+        const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+        const now = new Date().toLocaleTimeString("en-US", { timeZone: "Asia/Jakarta", hour12: false });
 
         // Check if already checked in for this prayer today
         const existing = await db
@@ -171,7 +171,7 @@ export const attendanceService = {
      */
     async bulkCheckIn(adminId: string, data: { prayerTimeId: string; userIds: string[]; date: string; status?: "present" | "late" | "absent" | "excused" }) {
         const { prayerTimeId, userIds, date, status = "present" } = data;
-        const now = new Date().toTimeString().split(" ")[0]; // HH:MM:SS
+        const now = new Date().toLocaleTimeString("en-US", { timeZone: "Asia/Jakarta", hour12: false });
 
         const results = [];
 
@@ -333,20 +333,31 @@ export const attendanceService = {
      * Get attendance statistics for a user (Default: Current Month)
      */
     async getStats(userId: string, month?: number, year?: number) {
-        const now = new Date();
-        const currentMonth = month || now.getMonth() + 1; // 1-12
-        const currentYear = year || now.getFullYear();
+        // Get Jakarta time components explicitly
+        const nowJakarta = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }); // YYYY-MM-DD
+        const [nYear, nMonth, nDay] = nowJakarta.split('-').map(Number);
 
-        // Start and End of the target month
-        const startDate = new Date(currentYear, currentMonth - 1, 1);
+        const currentMonth = month || nMonth;
+        const currentYear = year || nYear;
+
+        // Start of the target month
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const startStr = `${currentYear}-${pad(currentMonth)}-01`;
+
+        let endStr: string;
+
         // End date (either end of month or today if current month)
-        let endDate = new Date(currentYear, currentMonth, 0);
-        if (currentYear === now.getFullYear() && currentMonth === (now.getMonth() + 1)) {
-            endDate = now; // Cap at today for "Absent" calculation
+        if (currentYear === nYear && currentMonth === nMonth) {
+            endStr = nowJakarta;
+        } else {
+            // Get last day of month
+            const lastDay = new Date(currentYear, currentMonth, 0).getDate();
+            endStr = `${currentYear}-${pad(currentMonth)}-${pad(lastDay)}`;
         }
 
-        const startStr = startDate.toISOString().split('T')[0];
-        const endStr = endDate.toISOString().split('T')[0];
+        // Construct Date objects for calculation (UTC assumption is consistent)
+        const startDate = new Date(startStr);
+        const endDate = new Date(endStr);
 
         // 1. Get Attendance Records
         const records = await db
@@ -415,7 +426,7 @@ export const attendanceService = {
      * Get current user's status for today's prayers (Check-ins + Permits)
      */
     async getMyTodayStatus(userId: string) {
-        const today = new Date().toISOString().split("T")[0];
+        const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
 
         // Get Check-ins
         const records = await db
@@ -453,7 +464,7 @@ export const attendanceService = {
         const page = query.page || 1;
         const limit = query.limit || 10;
         const offset = (page - 1) * limit;
-        const targetDate = query.date || new Date().toISOString().split("T")[0];
+        const targetDate = query.date || new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
 
         // Handle Date Range (Weekly/Monthly)
         const isRange = Boolean(query.startDate && query.endDate && query.startDate !== query.endDate);
