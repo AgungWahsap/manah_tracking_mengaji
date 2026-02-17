@@ -102,7 +102,7 @@ const Login = () => {
                 {/* Copyright */}
                 <div className="mt-8 text-center">
                     <p className="text-xs text-white/20">
-                        © 2023 Manah Tracking System. <br />Design for Umat.
+                        © 2026 Manah Tracking System. <br />Design for Pengurus.
                     </p>
                 </div>
             </main>
