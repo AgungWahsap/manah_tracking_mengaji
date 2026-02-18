@@ -7,7 +7,7 @@ const { checkIn, submitPermit, getHistory, getStats, getGlobalRecap } = attendan
 export const attendanceKeys = {
     all: ['attendance'],
     history: (params) => ['attendance', 'history', params],
-    stats: () => ['attendance', 'stats'],
+    stats: (params) => ['attendance', 'stats', params],
     global: (params) => ['attendance', 'global', params],
 };
 
@@ -27,10 +27,10 @@ export function useAttendanceHistory(params = {}) {
 /**
  * Fetch current user's attendance statistics.
  */
-export function useAttendanceStats() {
+export function useAttendanceStats(params) {
     return useQuery({
-        queryKey: attendanceKeys.stats(),
-        queryFn: getStats,
+        queryKey: attendanceKeys.stats(params),
+        queryFn: () => getStats(params),
     });
 }
 

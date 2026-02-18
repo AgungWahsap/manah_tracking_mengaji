@@ -315,10 +315,10 @@ const HeroSection = () => {
                                         <div
                                             key={prayer.id}
                                             className={`flex items-center justify-between px-3 py-2 rounded-lg transition-all ${isActive
-                                                    ? 'bg-gradient-to-r from-accent-gold/20 to-transparent border-l-2 border-accent-gold'
-                                                    : isNext
-                                                        ? 'bg-white/10 border-l-2 border-white/50'
-                                                        : 'hover:bg-white/5 border-l-2 border-transparent'
+                                                ? 'bg-gradient-to-r from-accent-gold/20 to-transparent border-l-2 border-accent-gold'
+                                                : isNext
+                                                    ? 'bg-white/10 border-l-2 border-white/50'
+                                                    : 'hover:bg-white/5 border-l-2 border-transparent'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-3">
@@ -351,6 +351,7 @@ const HeroSection = () => {
             </div>
 
             {/* Actions Card */}
+            {/* Actions Card - HIDDEN FOR READ-ONLY SISTER
             <div className="lg:col-span-5 flex flex-col gap-4">
                 <div className="glass-panel rounded-2xl p-6 flex-1 flex flex-col justify-center">
                     <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
@@ -366,7 +367,6 @@ const HeroSection = () => {
                                 : 'bg-gradient-to-br from-green-600 to-primary hover:shadow-lg hover:shadow-green-900/40 border border-green-500/20'
                                 }`}
                         >
-                            {/* Overlay for hover effect only if not disabled */}
                             {!buttonState.disabled && <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors"></div>}
 
                             <span className={`material-icons-round text-4xl transition-transform ${buttonState.disabled ? 'text-gray-400' : 'text-white group-hover:scale-110'}`}>fingerprint</span>
@@ -390,12 +390,13 @@ const HeroSection = () => {
                     </div>
                 </div>
             </div>
+            */}
 
             {/* Permit Modal */}
+            {/* Permit Modal - HIDDEN FOR READ-ONLY SISTER
             {isPermitModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
                     <div className="bg-background-light dark:bg-background-dark border border-glass-border rounded-xl shadow-2xl w-full max-w-md overflow-hidden relative animate-in fade-in zoom-in duration-200">
-                        {/* Header */}
                         <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
                             <h3 className="text-lg font-bold text-white flex items-center gap-2">
                                 <span className="material-icons-round text-accent-gold">assignment</span>
@@ -409,7 +410,6 @@ const HeroSection = () => {
                             </button>
                         </div>
 
-                        {/* Body */}
                         <form onSubmit={handlePermitSubmit} className="p-6 space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-400 mb-2">Jenis Ijin</label>
@@ -481,6 +481,7 @@ const HeroSection = () => {
                     </div>
                 </div>
             )}
+            */}
         </div>
     );
 };

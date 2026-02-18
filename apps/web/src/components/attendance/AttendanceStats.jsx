@@ -1,8 +1,38 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAttendanceStats } from '../../hooks/useAttendance';
 
 const AttendanceStats = () => {
-    const { data: stats, isLoading } = useAttendanceStats();
+    const [filter, setFilter] = useState('month'); // week, month, semester
+
+    // Calculate dates based on filter
+    const dateRange = useMemo(() => {
+        const now = new Date();
+        const endDate = now.toISOString().split('T')[0];
+        let startDate = '';
+
+        if (filter === 'week') {
+            // Monday of current week
+            const day = now.getDay() || 7; // Get current day number, make Sunday 7
+            if (day !== 1) {
+                now.setHours(-24 * (day - 1));
+            }
+            startDate = now.toISOString().split('T')[0];
+        } else if (filter === 'month') {
+            // 1st of current month
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        } else if (filter === 'semester') {
+            // 6 months ago? OR Fixed semester? 
+            // "Semester Ini" usually means last 6 months window or fixed academic semester. 
+            // Let's use 6 months window for simplicity as "Semester Ini" implies current ongoing semester.
+            const past = new Date();
+            past.setMonth(past.getMonth() - 6);
+            startDate = past.toISOString().split('T')[0];
+        }
+
+        return { startDate, endDate };
+    }, [filter]);
+
+    const { data: stats, isLoading } = useAttendanceStats(dateRange);
 
     // Default values while loading or if no data
     const statsData = stats?.data || {};
@@ -37,7 +67,9 @@ const AttendanceStats = () => {
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                     <span className="material-symbols-outlined text-6xl text-primary">pie_chart</span>
                 </div>
-                <h3 className="text-slate-300 font-medium self-start mb-2">Statistik Bulan Ini</h3>
+                <h3 className="text-slate-300 font-medium self-start mb-2">
+                    Statistik {filter === 'week' ? 'Minggu Ini' : filter === 'semester' ? 'Semester Ini' : 'Bulan Ini'}
+                </h3>
                 <div className="relative w-48 h-48 my-4">
                     {/* SVG Donut Chart */}
                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
@@ -93,9 +125,24 @@ const AttendanceStats = () => {
                 {/* Date Filters */}
                 <div className="glass-panel rounded-2xl p-2 flex items-center justify-between">
                     <div className="flex bg-black/20 rounded-xl p-1">
-                        <button className="px-6 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white">Minggu Ini</button>
-                        <button className="px-6 py-2 rounded-lg bg-primary text-white shadow-lg shadow-primary/20 text-sm font-medium transition-all">Bulan Ini</button>
-                        <button className="px-6 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white">Semester Ini</button>
+                        <button
+                            onClick={() => setFilter('week')}
+                            className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${filter === 'week' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            Minggu Ini
+                        </button>
+                        <button
+                            onClick={() => setFilter('month')}
+                            className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${filter === 'month' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            Bulan Ini
+                        </button>
+                        <button
+                            onClick={() => setFilter('semester')}
+                            className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${filter === 'semester' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            Semester Ini
+                        </button>
                     </div>
                     <div className="px-4 text-slate-400 text-sm hidden sm:block">
                         {/* Dynamic Date Range could be added here */}

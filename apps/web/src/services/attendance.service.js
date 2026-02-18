@@ -50,8 +50,8 @@ export const attendanceService = {
      * Get user's attendance stats
      * @returns {Promise<Object>} API envelope
      */
-    getStats: async () => {
-        const response = await api.get('/attendance/stats');
+    getStats: async (params) => {
+        const response = await api.get('/attendance/stats', { params });
         return response;
     },
 

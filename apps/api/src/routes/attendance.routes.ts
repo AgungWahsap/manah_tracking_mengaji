@@ -89,7 +89,11 @@ router.get("/history", requireAuth, async (req: Request, res: Response) => {
  */
 router.get("/stats", requireAuth, async (req: Request, res: Response) => {
     try {
-        const stats = await attendanceService.getStats(req.user!.id);
+        const startDate = req.query.startDate as string;
+        const endDate = req.query.endDate as string;
+        // Month/Year might still be passed by old clients or if needed, but we focus on start/end
+        // If frontend sends month/year, we can also parse them, but service signature update handles it.
+        const stats = await attendanceService.getStats(req.user!.id, undefined, undefined, startDate, endDate);
         res.json({ success: true, data: stats });
     } catch (error: any) {
         res.status(500).json({

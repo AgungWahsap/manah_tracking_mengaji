@@ -331,33 +331,40 @@ export const attendanceService = {
      */
     /**
      * Get attendance statistics for a user (Default: Current Month)
+     * Updated: Supports startDate/endDate for custom range (Backward Compatible)
      */
-    async getStats(userId: string, month?: number, year?: number) {
+    async getStats(userId: string, month?: number, year?: number, startDate?: string, endDate?: string) {
         // Get Jakarta time components explicitly
         const nowJakarta = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }); // YYYY-MM-DD
-        const [nYear, nMonth, nDay] = nowJakarta.split('-').map(Number);
 
-        const currentMonth = month || nMonth;
-        const currentYear = year || nYear;
-
-        // Start of the target month
-        const pad = (n: number) => String(n).padStart(2, '0');
-        const startStr = `${currentYear}-${pad(currentMonth)}-01`;
-
+        let startStr: string;
         let endStr: string;
 
-        // End date (either end of month or today if current month)
-        if (currentYear === nYear && currentMonth === nMonth) {
-            endStr = nowJakarta;
+        // LOGIC BRANCHING:
+        // 1. If startDate AND endDate are provided, use them (Filter Mode)
+        if (startDate && endDate) {
+            startStr = startDate;
+            endStr = endDate;
         } else {
-            // Get last day of month
-            const lastDay = new Date(currentYear, currentMonth, 0).getDate();
-            endStr = `${currentYear}-${pad(currentMonth)}-${pad(lastDay)}`;
+            // 2. Default (Dashboard Mode) - Existing Logic
+            const [nYear, nMonth, nDay] = nowJakarta.split('-').map(Number);
+            const currentMonth = month || nMonth;
+            const currentYear = year || nYear;
+
+            const pad = (n: number) => String(n).padStart(2, '0');
+            startStr = `${currentYear}-${pad(currentMonth)}-01`;
+
+            if (currentYear === nYear && currentMonth === nMonth) {
+                endStr = nowJakarta;
+            } else {
+                const lastDay = new Date(currentYear, currentMonth, 0).getDate();
+                endStr = `${currentYear}-${pad(currentMonth)}-${pad(lastDay)}`;
+            }
         }
 
-        // Construct Date objects for calculation (UTC assumption is consistent)
-        const startDate = new Date(startStr);
-        const endDate = new Date(endStr);
+        // Construct Date objects for calculation
+        const sDate = new Date(startStr);
+        const eDate = new Date(endStr);
 
         // 1. Get Attendance Records
         const records = await db
@@ -405,13 +412,10 @@ export const attendanceService = {
 
         // 3. Calculate Absent (Alpha)
         // Total expected prayers = Days passed * 5
-        const daysPassed = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        // Ensure we count inclusive days: (end - start) + 1 day
+        const diffTime = Math.abs(eDate.getTime() - sDate.getTime());
+        const daysPassed = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
         const totalExpected = daysPassed * 5;
-
-        // Absent = Expected - (Present + Late + Excused)
-        // Note: usage of 'absent' status in attendanceRecord is rare/manual, so we calc 'calculatedAbsent'
-        // If 'absent' records exist (e.g. strict mode before revert), they are counted in stats.absent
-        // We add calculated missing records.
 
         const accountedFor = stats.present + stats.late + stats.excused + stats.absent;
         const calculatedAbsent = Math.max(0, totalExpected - accountedFor);
