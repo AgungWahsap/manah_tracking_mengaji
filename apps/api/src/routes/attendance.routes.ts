@@ -62,6 +62,27 @@ router.put("/permit/:id", requireAuth, requireAdmin, async (req: Request<{ id: s
 });
 
 /**
+ * GET /api/attendance/permits
+ * (Admin) List all permits with optional status filter
+ */
+router.get("/permits", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+        const query = {
+            status: req.query.status as string || 'pending',
+            page: parseInt(req.query.page as string) || 1,
+            limit: parseInt(req.query.limit as string) || 20,
+        };
+        const result = await attendanceService.getPendingPermits(query);
+        res.json({ success: true, ...result });
+    } catch (error: any) {
+        res.status(500).json({
+            success: false,
+            error: { message: error.message, code: "INTERNAL_ERROR" },
+        });
+    }
+});
+
+/**
  * GET /api/attendance/history
  * User's attendance history (paginated)
  */

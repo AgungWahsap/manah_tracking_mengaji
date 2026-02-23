@@ -37,6 +37,15 @@ export const attendanceService = {
     },
 
     /**
+     * (Admin) Get permits list with optional status filter
+     * @param {Object} params - { status, page, limit }
+     */
+    getPendingPermits: async (params) => {
+        const response = await api.get('/attendance/permits', { params });
+        return response;
+    },
+
+    /**
      * Get user's attendance history
      * @param {Object} params - Query params { page, limit, startDate, endDate }
      * @returns {Promise<Object>} API envelope

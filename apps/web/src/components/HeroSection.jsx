@@ -350,50 +350,35 @@ const HeroSection = () => {
                 </div>
             </div>
 
-            {/* Actions Card */}
-            {/* Actions Card - HIDDEN FOR READ-ONLY SISTER
+            {/* Actions Card - Only IJIN button (HADIR hidden, attendance via admin bulk) */}
             <div className="lg:col-span-5 flex flex-col gap-4">
                 <div className="glass-panel rounded-2xl p-6 flex-1 flex flex-col justify-center">
                     <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
                         <span className="w-1 h-6 bg-accent-gold rounded-full"></span>
-                        Absensi Cepat
+                        Pengajuan Ijin
                     </h3>
-                    <div className="grid grid-cols-2 gap-4 h-full">
-                        <button
-                            disabled={loading || buttonState.disabled}
-                            onClick={handleCheckIn}
-                            className={`group relative overflow-hidden rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all duration-300 ${buttonState.disabled
-                                ? 'bg-gray-500/20 border border-gray-500/30 cursor-not-allowed opacity-50'
-                                : 'bg-gradient-to-br from-green-600 to-primary hover:shadow-lg hover:shadow-green-900/40 border border-green-500/20'
-                                }`}
-                        >
-                            {!buttonState.disabled && <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors"></div>}
-
-                            <span className={`material-icons-round text-4xl transition-transform ${buttonState.disabled ? 'text-gray-400' : 'text-white group-hover:scale-110'}`}>fingerprint</span>
-                            <span className={`font-bold tracking-wide ${buttonState.disabled ? 'text-gray-400' : 'text-white'}`}>
-                                {loading ? 'PROSES...' : (buttonState.text && buttonState.text.includes('HADIR') ? buttonState.text : 'HADIR')}
-                            </span>
-                        </button>
+                    <div className="flex flex-col gap-3">
                         <button
                             disabled={buttonState.disabled}
                             onClick={() => setIsPermitModalOpen(true)}
-                            className={`group relative overflow-hidden rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all duration-300 ${buttonState.disabled
+                            className={`group relative overflow-hidden rounded-xl p-5 flex items-center justify-center gap-3 transition-all duration-300 ${buttonState.disabled
                                 ? 'bg-gray-500/20 border border-gray-500/30 cursor-not-allowed opacity-50'
-                                : 'bg-gradient-to-br from-yellow-600/20 to-yellow-800/20 border border-yellow-500/30 hover:bg-yellow-600/30'
+                                : 'bg-gradient-to-br from-yellow-600/20 to-yellow-800/20 border border-yellow-500/30 hover:bg-yellow-600/30 hover:shadow-lg hover:shadow-yellow-900/20'
                                 }`}
                         >
-                            <span className={`material-icons-round text-4xl transition-transform ${buttonState.disabled ? 'text-gray-400' : 'text-accent-gold group-hover:scale-110'}`}>assignment_late</span>
-                            <span className={`font-bold tracking-wide ${buttonState.disabled ? 'text-gray-400' : 'text-accent-gold'}`}>
-                                {buttonState.text && buttonState.text.includes('IJIN') ? buttonState.text : 'IJIN'}
+                            <span className={`material-icons-round text-3xl transition-transform ${buttonState.disabled ? 'text-gray-400' : 'text-accent-gold group-hover:scale-110'}`}>assignment_late</span>
+                            <span className={`font-bold tracking-wide text-lg ${buttonState.disabled ? 'text-gray-400' : 'text-accent-gold'}`}>
+                                {buttonState.text && buttonState.text.includes('IJIN') ? buttonState.text : 'AJUKAN IJIN'}
                             </span>
                         </button>
+                        <p className="text-xs text-gray-500 text-center">
+                            Ajukan ijin Sakit atau Khidmat untuk waktu sholat saat ini
+                        </p>
                     </div>
                 </div>
             </div>
-            */}
 
             {/* Permit Modal */}
-            {/* Permit Modal - HIDDEN FOR READ-ONLY SISTER
             {isPermitModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
                     <div className="bg-background-light dark:bg-background-dark border border-glass-border rounded-xl shadow-2xl w-full max-w-md overflow-hidden relative animate-in fade-in zoom-in duration-200">
@@ -481,7 +466,6 @@ const HeroSection = () => {
                     </div>
                 </div>
             )}
-            */}
         </div>
     );
 };

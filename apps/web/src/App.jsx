@@ -13,6 +13,7 @@ import ExportData from './pages/ExportData';
 import AdminSettings from './pages/AdminSettings';
 import AdminBulkAttendance from './pages/AdminBulkAttendance';
 import SunnahReport from './pages/SunnahReport';
+import PermitApproval from './pages/PermitApproval';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import UserLayout from './components/layouts/UserLayout';
 import AdminLayout from './components/layouts/AdminLayout';
@@ -62,6 +63,7 @@ function App() {
                     <Route path="/data-santri" element={<DataSantri />} />
                     <Route path="/export-data" element={<ExportData />} />
                     <Route path="/bulk-attendance" element={<AdminBulkAttendance />} />
+                    <Route path="/permit-approval" element={<PermitApproval />} />
                     <Route path="/settings" element={<AdminSettings />} />
                     <Route path="/sunnah-report" element={<SunnahReport />} />
                 </Route>

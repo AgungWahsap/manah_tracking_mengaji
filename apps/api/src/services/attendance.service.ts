@@ -267,6 +267,78 @@ export const attendanceService = {
     },
 
     /**
+     * (Admin) Get all permits with optional status filter
+     */
+    async getPendingPermits(query: { status?: string; page?: number; limit?: number }) {
+        const page = query.page || 1;
+        const limit = query.limit || 20;
+        const offset = (page - 1) * limit;
+
+        const whereConditions = [];
+        if (query.status && query.status !== 'all') {
+            whereConditions.push(eq(schema.permit.status, query.status as any));
+        }
+
+        const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+        const permits = await db
+            .select({
+                id: schema.permit.id,
+                userId: schema.permit.userId,
+                userName: schema.user.name,
+                userNis: schema.user.nis,
+                userRole: schema.user.role,
+                prayerTimeId: schema.permit.prayerTimeId,
+                prayerName: schema.prayerTime.name,
+                date: schema.permit.date,
+                type: schema.permit.type,
+                reason: schema.permit.reason,
+                isFullDay: schema.permit.isFullDay,
+                status: schema.permit.status,
+                approvedBy: schema.permit.approvedBy,
+                createdAt: schema.permit.createdAt,
+            })
+            .from(schema.permit)
+            .leftJoin(schema.user, eq(schema.permit.userId, schema.user.id))
+            .leftJoin(schema.prayerTime, eq(schema.permit.prayerTimeId, schema.prayerTime.id))
+            .where(whereClause)
+            .orderBy(desc(schema.permit.createdAt))
+            .limit(limit)
+            .offset(offset);
+
+        const [totalResult] = await db
+            .select({ total: count() })
+            .from(schema.permit)
+            .where(whereClause);
+
+        // Count by status for badge numbers
+        const statusCounts = await db
+            .select({
+                status: schema.permit.status,
+                count: count(),
+            })
+            .from(schema.permit)
+            .groupBy(schema.permit.status);
+
+        const counts = { pending: 0, approved: 0, rejected: 0 };
+        for (const sc of statusCounts) {
+            const key = sc.status as keyof typeof counts;
+            if (key in counts) counts[key] = Number(sc.count);
+        }
+
+        return {
+            data: permits,
+            counts,
+            pagination: {
+                page,
+                limit,
+                total: Number(totalResult.total),
+                totalPages: Math.ceil(Number(totalResult.total) / limit),
+            },
+        };
+    },
+
+    /**
      * Get a user's attendance history (paginated)
      */
     async getHistory(userId: string, query: HistoryQuery) {
@@ -665,11 +737,21 @@ export const attendanceService = {
                     (p.isFullDay || p.prayerTimeId === prayer.id)
                 );
 
-                if (prayerPermit) {
+                if (prayerPermit && prayerPermit.status === 'approved') {
+                    // Only count as excused if permit is approved
                     userAttendance[prayer.name] = {
                         status: "excused",
                         permit: prayerPermit
                     };
+                } else if (prayerPermit) {
+                    // Pending/rejected permit: show it but don't mark as excused
+                    userAttendance[prayer.name] = record
+                        ? {
+                            status: record.status,
+                            checkInTime: record.checkInTime,
+                            permit: prayerPermit // Attach permit info so admin can see
+                        }
+                        : { status: "pending", permit: prayerPermit };
                 } else {
                     userAttendance[prayer.name] = record
                         ? {

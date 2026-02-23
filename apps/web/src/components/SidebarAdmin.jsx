@@ -40,6 +40,12 @@ const SidebarAdmin = ({ onClose }) => {
                     <span className="font-medium">Absensi Massal</span>
                 </Link>
 
+                {/* Persetujuan Ijin */}
+                <Link to="/permit-approval" onClick={onClose} className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all group ${location.pathname === '/permit-approval' ? 'bg-primary/40 border border-gold/20 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+                    <span className={`material-icons-round transition-colors ${location.pathname === '/permit-approval' ? 'text-gold' : 'group-hover:text-gold/80'}`}>assignment_turned_in</span>
+                    <span className="font-medium">Persetujuan Ijin</span>
+                </Link>
+
                 {/* Laporan Sunnah */}
                 <Link to="/sunnah-report" onClick={onClose} className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all group ${location.pathname === '/sunnah-report' ? 'bg-primary/40 border border-gold/20 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
                     <span className={`material-icons-round transition-colors ${location.pathname === '/sunnah-report' ? 'text-gold' : 'group-hover:text-gold/80'}`}>volunteer_activism</span>
