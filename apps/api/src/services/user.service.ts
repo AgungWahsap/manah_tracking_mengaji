@@ -65,10 +65,18 @@ export const userService = {
      * Update a user's profile
      */
     async updateProfile(userId: string, data: UpdateUserData) {
+        // ✅ Security Fix: Whitelist — hanya field yang boleh diubah oleh user sendiri
+        // Field sensitif (role, status, email, nis, asramaId) hanya bisa diubah oleh admin via PUT /api/users/:id
+        const allowedFields: Record<string, any> = {};
+        if (data.name !== undefined) allowedFields.name = data.name;
+        if (data.phone !== undefined) allowedFields.phone = data.phone;
+        if (data.address !== undefined) allowedFields.address = data.address;
+        if (data.waliName !== undefined) allowedFields.waliName = data.waliName;
+
         const [updated] = await db
             .update(schema.user)
             .set({
-                ...data,
+                ...allowedFields,
                 updatedAt: new Date(),
             })
             .where(eq(schema.user.id, userId))

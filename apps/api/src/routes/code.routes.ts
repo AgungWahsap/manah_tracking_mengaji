@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
 import { requireAuth, requireAdmin } from "../middleware/auth.middleware.js";
 import { codeService } from "../services/code.service.js";
+import { sanitizeErrorMessage } from "../middleware/error-sanitizer.js";
+import { validateBody, createCodeSchema, updateCodeSchema } from "../middleware/validators.js";
 
 const router = Router();
 
@@ -22,7 +24,7 @@ router.get("/", requireAuth, requireAdmin, async (req: Request, res: Response) =
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -33,13 +35,15 @@ router.get("/", requireAuth, requireAdmin, async (req: Request, res: Response) =
  */
 router.post("/", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
-        const code = await codeService.createCode(req.body);
+        const data = validateBody(createCodeSchema, req, res);
+        if (!data) return;
+        const code = await codeService.createCode(data);
         res.status(201).json({ success: true, data: code });
     } catch (error: any) {
         const status = error.message.includes("already exists") ? 409 : 400;
         res.status(status).json({
             success: false,
-            error: { message: error.message, code: "CREATE_FAILED" },
+            error: { message: sanitizeErrorMessage(error), code: "CREATE_FAILED" },
         });
     }
 });
@@ -50,12 +54,14 @@ router.post("/", requireAuth, requireAdmin, async (req: Request, res: Response) 
  */
 router.put("/:id", requireAuth, requireAdmin, async (req: Request<{ id: string }>, res: Response) => {
     try {
-        const code = await codeService.updateCode(req.params.id, req.body);
+        const data = validateBody(updateCodeSchema, req, res);
+        if (!data) return;
+        const code = await codeService.updateCode(req.params.id, data);
         res.json({ success: true, data: code });
     } catch (error: any) {
         res.status(400).json({
             success: false,
-            error: { message: error.message, code: "UPDATE_FAILED" },
+            error: { message: sanitizeErrorMessage(error), code: "UPDATE_FAILED" },
         });
     }
 });
@@ -71,7 +77,7 @@ router.delete("/:id", requireAuth, requireAdmin, async (req: Request<{ id: strin
     } catch (error: any) {
         res.status(404).json({
             success: false,
-            error: { message: error.message, code: "NOT_FOUND" },
+            error: { message: sanitizeErrorMessage(error), code: "NOT_FOUND" },
         });
     }
 });

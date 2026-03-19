@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
 import { requireAuth, requireAdmin } from "../middleware/auth.middleware.js";
 import { settingsService } from "../services/settings.service.js";
+import { sanitizeErrorMessage } from "../middleware/error-sanitizer.js";
+import { validateBody, updateSettingsSchema, prayerOffsetsSchema } from "../middleware/validators.js";
 
 const router = Router();
 
@@ -15,7 +17,7 @@ router.get("/", requireAuth, requireAdmin, async (_req: Request, res: Response) 
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -26,13 +28,14 @@ router.get("/", requireAuth, requireAdmin, async (_req: Request, res: Response) 
  */
 router.put("/", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
-        const { settings } = req.body;
-        const updated = await settingsService.updateAll(settings, req.user!.id);
+        const data = validateBody(updateSettingsSchema, req, res);
+        if (!data) return;
+        const updated = await settingsService.updateAll(data.settings, req.user!.id);
         res.json({ success: true, data: updated });
     } catch (error: any) {
         res.status(400).json({
             success: false,
-            error: { message: error.message, code: "UPDATE_FAILED" },
+            error: { message: sanitizeErrorMessage(error), code: "UPDATE_FAILED" },
         });
     }
 });
@@ -48,7 +51,7 @@ router.get("/prayer-offsets", requireAuth, async (_req: Request, res: Response) 
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -59,12 +62,14 @@ router.get("/prayer-offsets", requireAuth, async (_req: Request, res: Response) 
  */
 router.put("/prayer-offsets", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
-        const offsets = await settingsService.updatePrayerOffsets(req.body);
+        const data = validateBody(prayerOffsetsSchema, req, res);
+        if (!data) return;
+        const offsets = await settingsService.updatePrayerOffsets(data);
         res.json({ success: true, data: offsets });
     } catch (error: any) {
         res.status(400).json({
             success: false,
-            error: { message: error.message, code: "UPDATE_FAILED" },
+            error: { message: sanitizeErrorMessage(error), code: "UPDATE_FAILED" },
         });
     }
 });
@@ -80,7 +85,7 @@ router.post("/reset-daily-attendance", requireAuth, requireAdmin, async (_req: R
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "RESET_FAILED" },
+            error: { message: sanitizeErrorMessage(error), code: "RESET_FAILED" },
         });
     }
 });
@@ -96,7 +101,7 @@ router.post("/unbind-all-devices", requireAuth, requireAdmin, async (_req: Reque
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "UNBIND_FAILED" },
+            error: { message: sanitizeErrorMessage(error), code: "UNBIND_FAILED" },
         });
     }
 });

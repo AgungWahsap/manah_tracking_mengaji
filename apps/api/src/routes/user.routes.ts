@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
 import { requireAuth, requireAdmin } from "../middleware/auth.middleware.js";
 import { userService } from "../services/user.service.js";
+import { sanitizeErrorMessage } from "../middleware/error-sanitizer.js";
+import { validateBody, updateProfileSchema, createUserSchema, updateUserSchema } from "../middleware/validators.js";
 
 const router = Router();
 
@@ -15,7 +17,7 @@ router.get("/me", requireAuth, async (req: Request, res: Response) => {
     } catch (error: any) {
         res.status(404).json({
             success: false,
-            error: { message: error.message, code: "NOT_FOUND" },
+            error: { message: sanitizeErrorMessage(error), code: "NOT_FOUND" },
         });
     }
 });
@@ -26,12 +28,14 @@ router.get("/me", requireAuth, async (req: Request, res: Response) => {
  */
 router.put("/me", requireAuth, async (req: Request, res: Response) => {
     try {
-        const updated = await userService.updateProfile(req.user!.id, req.body);
+        const data = validateBody(updateProfileSchema, req, res);
+        if (!data) return;
+        const updated = await userService.updateProfile(req.user!.id, data);
         res.json({ success: true, data: updated });
     } catch (error: any) {
         res.status(400).json({
             success: false,
-            error: { message: error.message, code: "UPDATE_FAILED" },
+            error: { message: sanitizeErrorMessage(error), code: "UPDATE_FAILED" },
         });
     }
 });
@@ -48,7 +52,7 @@ router.put("/me/avatar", requireAuth, async (req: Request, res: Response) => {
     } catch (error: any) {
         res.status(400).json({
             success: false,
-            error: { message: error.message, code: "AVATAR_UPDATE_FAILED" },
+            error: { message: sanitizeErrorMessage(error), code: "AVATAR_UPDATE_FAILED" },
         });
     }
 });
@@ -71,7 +75,7 @@ router.get("/", requireAuth, requireAdmin, async (req: Request, res: Response) =
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -82,12 +86,14 @@ router.get("/", requireAuth, requireAdmin, async (req: Request, res: Response) =
  */
 router.post("/", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
-        const user = await userService.createUser(req.body);
+        const data = validateBody(createUserSchema, req, res);
+        if (!data) return;
+        const user = await userService.createUser(data);
         res.status(201).json({ success: true, data: user });
     } catch (error: any) {
         res.status(400).json({
             success: false,
-            error: { message: error.message, code: "CREATE_FAILED" },
+            error: { message: sanitizeErrorMessage(error), code: "CREATE_FAILED" },
         });
     }
 });
@@ -103,7 +109,7 @@ router.get("/:id", requireAuth, requireAdmin, async (req: Request<{ id: string }
     } catch (error: any) {
         res.status(404).json({
             success: false,
-            error: { message: error.message, code: "NOT_FOUND" },
+            error: { message: sanitizeErrorMessage(error), code: "NOT_FOUND" },
         });
     }
 });
@@ -114,12 +120,14 @@ router.get("/:id", requireAuth, requireAdmin, async (req: Request<{ id: string }
  */
 router.put("/:id", requireAuth, requireAdmin, async (req: Request<{ id: string }>, res: Response) => {
     try {
-        const user = await userService.updateUser(req.params.id, req.body);
+        const data = validateBody(updateUserSchema, req, res);
+        if (!data) return;
+        const user = await userService.updateUser(req.params.id, data);
         res.json({ success: true, data: user });
     } catch (error: any) {
         res.status(400).json({
             success: false,
-            error: { message: error.message, code: "UPDATE_FAILED" },
+            error: { message: sanitizeErrorMessage(error), code: "UPDATE_FAILED" },
         });
     }
 });
@@ -135,7 +143,7 @@ router.delete("/:id", requireAuth, requireAdmin, async (req: Request<{ id: strin
     } catch (error: any) {
         res.status(404).json({
             success: false,
-            error: { message: error.message, code: "NOT_FOUND" },
+            error: { message: sanitizeErrorMessage(error), code: "NOT_FOUND" },
         });
     }
 });

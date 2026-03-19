@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
 import { requireAuth, requireAdmin } from "../middleware/auth.middleware.js";
 import { exportService } from "../services/export.service.js";
+import { sanitizeErrorMessage } from "../middleware/error-sanitizer.js";
+import { validateBody, generateReportSchema } from "../middleware/validators.js";
 import fs from "fs";
 
 const router = Router();
@@ -11,15 +13,18 @@ const router = Router();
  */
 router.post("/generate", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
+        // ✅ Security Fix: validate + explicit field extraction
+        const data = validateBody(generateReportSchema, req, res);
+        if (!data) return;
         const record = await exportService.generateReport({
             generatedBy: req.user!.id,
-            ...req.body,
+            ...data,
         });
         res.status(201).json({ success: true, data: record });
     } catch (error: any) {
         res.status(400).json({
             success: false,
-            error: { message: error.message, code: "GENERATE_FAILED" },
+            error: { message: sanitizeErrorMessage(error), code: "GENERATE_FAILED" },
         });
     }
 });
@@ -39,7 +44,7 @@ router.get("/history", requireAuth, requireAdmin, async (req: Request, res: Resp
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -73,7 +78,7 @@ router.get("/:id/download", requireAuth, requireAdmin, async (req: Request<{ id:
     } catch (error: any) {
         res.status(404).json({
             success: false,
-            error: { message: error.message, code: "NOT_FOUND" },
+            error: { message: sanitizeErrorMessage(error), code: "NOT_FOUND" },
         });
     }
 });

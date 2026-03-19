@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
-import { requireAuth } from "../middleware/auth.middleware.js";
+import { requireAuth, requireAdmin } from "../middleware/auth.middleware.js";
 import { dashboardService } from "../services/dashboard.service.js";
+import { sanitizeErrorMessage } from "../middleware/error-sanitizer.js";
+import { validateBody, updatePrayerTimesSchema } from "../middleware/validators.js";
 
 const router = Router();
 
@@ -15,7 +17,7 @@ router.get("/prayer-times", requireAuth, async (_req: Request, res: Response) =>
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -31,7 +33,7 @@ router.get("/weekly-stats", requireAuth, async (req: Request, res: Response) => 
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -48,7 +50,7 @@ router.get("/recent-activity", requireAuth, async (req: Request, res: Response) 
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -57,15 +59,16 @@ router.get("/recent-activity", requireAuth, async (req: Request, res: Response) 
  * PUT /api/dashboard/prayer-times
  * Update prayer times and offsets
  */
-router.put("/prayer-times", requireAuth, async (req: Request, res: Response) => {
+router.put("/prayer-times", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
-        const { updates } = req.body; // Expects { updates: { subuh: { time: "04:30", offset: 20 }, ... } }
-        await dashboardService.updatePrayerTimes(updates);
+        const data = validateBody(updatePrayerTimesSchema, req, res);
+        if (!data) return;
+        await dashboardService.updatePrayerTimes(data.updates);
         res.json({ success: true });
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error), code: "INTERNAL_ERROR" },
         });
     }
 });

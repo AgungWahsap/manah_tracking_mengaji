@@ -6,9 +6,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: manah
-      POSTGRES_PASSWORD: manah_secret
-      POSTGRES_DB: manah_tracking
+      POSTGRES_USER: ${POSTGRES_USER:-manah}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production}
+      POSTGRES_DB: ${POSTGRES_DB:-manah_tracking}
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

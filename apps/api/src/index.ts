@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import rateLimit from "express-rate-limit";
 import path from "path";
 import { fileURLToPath } from "url";
 import "dotenv/config";
@@ -17,13 +18,28 @@ const PORT = process.env.PORT || 3001;
 // Security headers
 app.use(helmet());
 
-// CORS - allow frontend origin
-// Pastikan FRONTEND_URL di .env Vercel backend kamu sudah benar!
+// CORS - allow frontend origin(s)
+// ✅ Security Fix #7: Dukung multi-origin via comma-separated FRONTEND_URL
+const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
+    .split(",")
+    .map(s => s.trim());
+
 app.use(
     cors({
-        origin: process.env.FRONTEND_URL || "http://localhost:5173",
+        origin: (origin, callback) => {
+            // Izinkan request tanpa origin (Vite proxy, mobile apps, curl) di development
+            if (!origin && process.env.NODE_ENV !== "production") {
+                return callback(null, true);
+            }
+            // Izinkan origin yang ada di daftar
+            if (origin && allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+            // Tolak origin yang tidak dikenal (return false, bukan throw Error)
+            callback(null, false);
+        },
         credentials: true,
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // Tambahkan ini agar lebih aman
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         allowedHeaders: ["Content-Type", "Authorization"],
     })
 );
@@ -52,6 +68,29 @@ app.get("/api/health", (_req, res) => {
         },
     });
 });
+
+// ─── Rate Limiting ───────────────────────────────────────────────────
+
+// ✅ Security Fix #9: Rate limit HANYA untuk login endpoint (anti brute-force)
+// Tidak diterapkan ke GET /api/auth/get-session dll agar tidak mengganggu flow normal
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 menit
+    max: 15, // Maksimal 15 percobaan login
+    message: {
+        success: false,
+        error: {
+            message: "Terlalu banyak percobaan login. Coba lagi dalam 15 menit.",
+            code: "RATE_LIMITED",
+        },
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    // Hanya hitung POST requests (login attempts)
+    skip: (req) => req.method !== "POST",
+});
+
+// Terapkan rate limit hanya ke auth login path
+app.use("/api/auth/login", authLimiter);
 
 // ─── API Routes ──────────────────────────────────────────────────────
 

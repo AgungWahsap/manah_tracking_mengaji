@@ -261,6 +261,15 @@ export const exportService = {
      * Get the absolute file path for an export
      */
     getFilePath(filename: string): string {
-        return path.join(EXPORTS_DIR, filename);
+        // ✅ Security Fix: sanitasi path traversal
+        const safeName = path.basename(filename);
+        const fullPath = path.join(EXPORTS_DIR, safeName);
+
+        // Double-check: pastikan path masih di dalam EXPORTS_DIR
+        if (!fullPath.startsWith(EXPORTS_DIR)) {
+            throw new Error("Invalid file path");
+        }
+
+        return fullPath;
     },
 };

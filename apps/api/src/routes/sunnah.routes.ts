@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
 import { requireAuth, requireAdmin } from "../middleware/auth.middleware.js";
 import { sunnahService } from "../services/sunnah.service.js";
+import { sanitizeErrorMessage } from "../middleware/error-sanitizer.js";
+import { validateBody, submitSunnahSchema } from "../middleware/validators.js";
 
 const router = Router();
 
@@ -16,7 +18,7 @@ router.get("/today", requireAuth, async (req: Request, res: Response) => {
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message },
+            error: { message: sanitizeErrorMessage(error) },
         });
     }
 });
@@ -28,20 +30,21 @@ router.get("/today", requireAuth, async (req: Request, res: Response) => {
  */
 router.post("/", requireAuth, async (req: Request, res: Response) => {
     try {
-        const { practice, performed, date } = req.body;
-        const targetDate = date || new Date().toISOString().split("T")[0];
+        const data = validateBody(submitSunnahSchema, req, res);
+        if (!data) return;
+        const targetDate = data.date || new Date().toISOString().split("T")[0];
 
         const record = await sunnahService.submitSunnah({
             userId: req.user!.id,
             date: targetDate,
-            practice,
-            performed
+            practice: data.practice,
+            performed: data.performed
         });
         res.json({ success: true, data: record });
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message },
+            error: { message: sanitizeErrorMessage(error) },
         });
     }
 });
@@ -62,7 +65,7 @@ router.get("/report", requireAuth, requireAdmin, async (req: Request, res: Respo
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message },
+            error: { message: sanitizeErrorMessage(error) },
         });
     }
 });

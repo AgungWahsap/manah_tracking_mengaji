@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
 import { requireAuth, requireAdmin } from "../middleware/auth.middleware.js";
 import { attendanceService } from "../services/attendance.service.js";
+import { sanitizeErrorMessage } from "../middleware/error-sanitizer.js";
+import { validateBody, validateQuery, checkInSchema, permitSchema, updatePermitStatusSchema, bulkCheckInSchema, historyQuerySchema, globalRecapQuerySchema, statsQuerySchema } from "../middleware/validators.js";
 
 const router = Router();
 
@@ -10,12 +12,14 @@ const router = Router();
  */
 router.post("/check-in", requireAuth, async (req: Request, res: Response) => {
     try {
-        const record = await attendanceService.checkIn(req.user!.id, req.body);
+        const data = validateBody(checkInSchema, req, res);
+        if (!data) return;
+        const record = await attendanceService.checkIn(req.user!.id, data);
         res.status(201).json({ success: true, data: record });
     } catch (error: any) {
         res.status(400).json({
             success: false,
-            error: { message: error.message, code: "CHECK_IN_FAILED" },
+            error: { message: sanitizeErrorMessage(error, "Gagal memproses data"), code: "CHECK_IN_FAILED" },
         });
     }
 });
@@ -26,12 +30,14 @@ router.post("/check-in", requireAuth, async (req: Request, res: Response) => {
  */
 router.post("/permit", requireAuth, async (req: Request, res: Response) => {
     try {
-        const permit = await attendanceService.submitPermit(req.user!.id, req.body);
+        const data = validateBody(permitSchema, req, res);
+        if (!data) return;
+        const permit = await attendanceService.submitPermit(req.user!.id, data);
         res.status(201).json({ success: true, data: permit });
     } catch (error: any) {
         res.status(400).json({
             success: false,
-            error: { message: error.message, code: "PERMIT_FAILED" },
+            error: { message: sanitizeErrorMessage(error, "Gagal memproses data"), code: "PERMIT_FAILED" },
         });
     }
 });
@@ -42,21 +48,15 @@ router.post("/permit", requireAuth, async (req: Request, res: Response) => {
  */
 router.put("/permit/:id", requireAuth, requireAdmin, async (req: Request<{ id: string }>, res: Response) => {
     try {
-        const { status } = req.body;
-        if (!["approved", "rejected"].includes(status)) {
-            res.status(400).json({
-                success: false,
-                error: { message: "Invalid status", code: "INVALID_STATUS" },
-            });
-            return;
-        }
+        const data = validateBody(updatePermitStatusSchema, req, res);
+        if (!data) return;
 
-        const permit = await attendanceService.updatePermitStatus(req.params.id, status, req.user!.id);
+        const permit = await attendanceService.updatePermitStatus(req.params.id, data.status, req.user!.id);
         res.json({ success: true, data: permit });
     } catch (error: any) {
         res.status(400).json({
             success: false,
-            error: { message: error.message, code: "UPDATE_FAILED" },
+            error: { message: sanitizeErrorMessage(error, "Gagal memproses data"), code: "UPDATE_FAILED" },
         });
     }
 });
@@ -77,7 +77,7 @@ router.get("/permits", requireAuth, requireAdmin, async (req: Request, res: Resp
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error, "Gagal memproses data"), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -99,7 +99,7 @@ router.get("/history", requireAuth, async (req: Request, res: Response) => {
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error, "Gagal memproses data"), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -119,7 +119,7 @@ router.get("/stats", requireAuth, async (req: Request, res: Response) => {
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error, "Gagal memproses data"), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -135,7 +135,7 @@ router.get("/today-status", requireAuth, async (req: Request, res: Response) => 
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error, "Gagal memproses data"), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -160,7 +160,7 @@ router.get("/global", requireAuth, requireAdmin, async (req: Request, res: Respo
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error, "Gagal memproses data"), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -177,7 +177,7 @@ router.get("/report", requireAuth, requireAdmin, async (req: Request, res: Respo
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error, "Gagal memproses data"), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -194,7 +194,7 @@ router.delete("/daily", requireAuth, requireAdmin, async (req: Request, res: Res
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "INTERNAL_ERROR" },
+            error: { message: sanitizeErrorMessage(error, "Gagal memproses data"), code: "INTERNAL_ERROR" },
         });
     }
 });
@@ -205,33 +205,20 @@ router.delete("/daily", requireAuth, requireAdmin, async (req: Request, res: Res
  */
 router.post("/bulk", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
-        const { prayerTimeId, userIds, date, status } = req.body;
+        const data = validateBody(bulkCheckInSchema, req, res);
+        if (!data) return;
 
-        // Basic validation
-        if (!prayerTimeId || !userIds || !Array.isArray(userIds) || !date) {
-            res.status(400).json({
-                success: false,
-                error: { message: "Missing required fields (prayerTimeId, userIds, date)", code: "INVALID_INPUT" },
-            });
-            return;
-        }
-
-        const results = await attendanceService.bulkCheckIn(req.user!.id, {
-            prayerTimeId,
-            userIds,
-            date,
-            status
-        });
+        const results = await attendanceService.bulkCheckIn(req.user!.id, data);
 
         res.json({
             success: true,
             data: results,
-            message: `Processed ${userIds.length} users.`
+            message: `Processed ${data.userIds.length} users.`
         });
     } catch (error: any) {
         res.status(500).json({
             success: false,
-            error: { message: error.message, code: "BULK_CHECKIN_FAILED" },
+            error: { message: sanitizeErrorMessage(error, "Gagal memproses data"), code: "BULK_CHECKIN_FAILED" },
         });
     }
 });
