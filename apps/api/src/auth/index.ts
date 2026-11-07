@@ -31,6 +31,7 @@ export const auth = betterAuth({
             .split(",")
             .map((origin) => origin.trim())
             .filter(Boolean),
+        "https://manah-tracking2.vercel.app",
         "http://localhost:5173",
     ],
 
