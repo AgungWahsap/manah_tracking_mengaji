@@ -2,7 +2,7 @@
     "rewrites": [
         {
             "source": "/api/:match*",
-            "destination": "https://manah-tracking-mengaji.vercel.app/api/:match*"
+            "destination": "https://manah-tracking-api.vercel.app/api/:match*"
         },
         {
             "source": "/(.*)",
