@@ -9,6 +9,7 @@ export const recitationService = {
     exportClassTemplate: async (id) => api.get(`/recitation/classes/${id}/template`, { responseType: 'blob' }),
     importClassStudents: async (id, fileBase64) => api.post(`/recitation/classes/${id}/import`, { fileBase64 }),
     getSessions: async () => api.get('/recitation/sessions'),
+    getAttendanceSetup: async () => api.get('/recitation/attendance/setup'),
     updateSessions: async (updates) => api.put('/recitation/sessions', { updates }),
     getStudents: async ({ search = '', includeInactive = false, classId } = {}) => api.get('/recitation/students', {
         params: { search, includeInactive, ...(classId ? { classId } : {}) },

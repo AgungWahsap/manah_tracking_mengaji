@@ -31,7 +31,8 @@ const DataSantri = () => {
     };
 
     useEffect(() => {
-        loadStudents();
+        const timeoutId = window.setTimeout(loadStudents, 300);
+        return () => window.clearTimeout(timeoutId);
     }, [search]);
 
     useEffect(() => {

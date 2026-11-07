@@ -112,6 +112,17 @@ router.get("/sessions", async (_req: Request, res: Response) => {
     }
 });
 
+router.get("/attendance/setup", async (_req: Request, res: Response) => {
+    try {
+        res.json({ success: true, ...(await recitationService.getAttendanceSetup()) });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: { message: sanitizeErrorMessage(error), code: "RECITATION_ATTENDANCE_SETUP_FAILED" },
+        });
+    }
+});
+
 router.put("/sessions", async (req: Request, res: Response) => {
     try {
         const data = validateBody(recitationScheduleSchema, req, res);

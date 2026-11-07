@@ -184,6 +184,8 @@ Set-Location apps\api
 npm run db:push
 ```
 
+Jika ada perubahan skema atau indeks database pada pembaruan aplikasi, jalankan kembali `npm run db:push` dari folder `apps\api`.
+
 Setelah berhasil, buka **Neon SQL Editor**, pastikan branch development yang benar dipilih, lalu jalankan seluruh isi `apps\api\drizzle\0001_recitation_attendance.sql` satu kali. Migrasi ini menyalin data santri lama dan menonaktifkan akses login non-admin di database yang dipilih; jangan jalankan pada branch produksi.
 
 Kembali ke PowerShell (masih di `apps\api`) dan seed jadwal serta admin:

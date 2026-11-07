@@ -11,6 +11,7 @@ import {
     real,
     jsonb,
     pgEnum,
+    index,
     uniqueIndex,
 } from "drizzle-orm/pg-core";
 
@@ -178,7 +179,9 @@ export const recitationStudent = pgTable("recitation_student", {
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+}, (table) => ({
+    classActiveIdx: index("recitation_student_class_active_idx").on(table.classId, table.isActive),
+}));
 
 export const recitationSession = pgTable("recitation_session", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -211,6 +214,7 @@ export const recitationAttendance = pgTable(
             table.sessionId,
             table.date,
         ),
+        dateSessionIdx: index("recitation_attendance_date_session_idx").on(table.date, table.sessionId),
     }),
 );
 

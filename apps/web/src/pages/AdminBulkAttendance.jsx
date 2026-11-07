@@ -42,13 +42,10 @@ const AdminBulkAttendance = () => {
             setLoading(true);
             setError('');
             try {
-                const [sessionResponse, classResponse] = await Promise.all([
-                    recitationService.getSessions(),
-                    recitationService.getClasses(),
-                ]);
-                const nextSessions = sessionResponse.data || [];
+                const response = await recitationService.getAttendanceSetup();
+                const nextSessions = response.sessions || [];
                 setSessions(nextSessions);
-                const nextClasses = classResponse.data || [];
+                const nextClasses = response.classes || [];
                 setClasses(nextClasses);
                 setClassId((current) => current || nextClasses.find((item) => item.isActive)?.id || '');
                 setSessionId((current) => current || nextSessions[0]?.id || '');

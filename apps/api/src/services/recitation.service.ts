@@ -56,6 +56,14 @@ export const recitationService = {
             .orderBy(asc(schema.recitationSession.scheduledTime));
     },
 
+    async getAttendanceSetup() {
+        const [sessions, classes] = await Promise.all([
+            this.getSessions(),
+            this.listClasses(),
+        ]);
+        return { sessions, classes };
+    },
+
     async updateSessions(updates: Record<SessionName, string>) {
         const now = new Date();
         await db.transaction(async (tx) => {
@@ -241,15 +249,6 @@ export const recitationService = {
             conditions.push(eq(schema.recitationStudent.classId, classId));
         }
 
-        const [totalResult] = await db
-            .select({ total: count() })
-            .from(schema.recitationAttendance)
-            .innerJoin(
-                schema.recitationStudent,
-                eq(schema.recitationAttendance.studentId, schema.recitationStudent.id),
-            )
-            .where(and(...conditions));
-
         const records = await db
             .select({
                 id: schema.recitationAttendance.id,
@@ -288,7 +287,7 @@ export const recitationService = {
             totals[record.status] += 1;
         }
 
-        return { data: records, totals, total: Number(totalResult.total) };
+        return { data: records, totals, total: records.length };
     },
 
     async exportRecapWorkbook(startDate: string, endDate: string, sessionId?: string, classId?: string) {

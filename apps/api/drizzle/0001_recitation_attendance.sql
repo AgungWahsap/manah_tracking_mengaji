@@ -30,6 +30,9 @@ CREATE TABLE IF NOT EXISTS recitation_student (
 ALTER TABLE recitation_student
     ADD COLUMN IF NOT EXISTS class_id uuid REFERENCES recitation_class(id);
 
+CREATE INDEX IF NOT EXISTS recitation_student_class_active_idx
+    ON recitation_student (class_id, is_active);
+
 CREATE TABLE IF NOT EXISTS recitation_session (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name varchar(20) NOT NULL UNIQUE,
@@ -50,6 +53,9 @@ CREATE TABLE IF NOT EXISTS recitation_attendance (
 
 CREATE UNIQUE INDEX IF NOT EXISTS recitation_attendance_student_session_date_unique
     ON recitation_attendance (student_id, session_id, date);
+
+CREATE INDEX IF NOT EXISTS recitation_attendance_date_session_idx
+    ON recitation_attendance (date, session_id);
 
 INSERT INTO recitation_session (name, scheduled_time)
 VALUES
