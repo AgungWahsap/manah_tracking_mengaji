@@ -1,7 +1,7 @@
-# 🕌 Manah Tracking — Sistem Absensi Sholat Berjamaah
+# 🕌 Manah Tracking — Sistem Absensi Mengaji
 
 <p align="center">
-  <strong>Sistem manajemen absensi sholat 5 waktu untuk pesantren</strong><br/>
+  <strong>Sistem absensi mengaji berbasis input massal admin untuk pesantren</strong><br/>
   Dibangun dengan React.js, Express.js, PostgreSQL & Drizzle ORM
 </p>
 
@@ -17,38 +17,30 @@
 
 ## 📖 Deskripsi
 
-**Manah Tracking** adalah aplikasi web full-stack untuk mengelola absensi sholat berjamaah 5 waktu di lingkungan pesantren. Sistem ini menggantikan proses absensi manual (kertas) menjadi digital, dilengkapi dengan dashboard real-time, fitur pengajuan izin, tracking sholat sunnah, dan export laporan.
+**Manah Tracking** adalah aplikasi web full-stack untuk mengelola absensi mengaji di pesantren. Admin masuk menggunakan kode unik, mengatur jadwal, mengisi absensi santri secara massal, dan melihat rekap. Santri hanya menjadi data peserta dan tidak memiliki akun login.
 
 ### ❓ Masalah yang Diselesaikan
 
 | Masalah | Solusi |
 |---|---|
 | Absensi manual sering tercecer | Digitalisasi penuh dengan database |
-| Rekap bulanan memakan waktu berjam-jam | Export otomatis ke Excel |
-| Santri tidak punya email pribadi | Login via **kode akses unik** |
-| Sulit memantau kedisiplinan santri | Dashboard + statistik real-time |
+| Rekap absensi sulit dihitung | Rekap dan export CSV berdasarkan periode |
+| Input absensi mengaji secara manual | Input massal digital per sesi |
+| Rekap absensi sulit dihitung | Rekap per santri, sesi, dan periode |
+| Santri tidak membutuhkan akses aplikasi | Login hanya untuk admin |
 
 ---
 
 ## ✨ Fitur Utama
 
-### 👤 Fitur User (Santri/Staff)
-- 🔐 **Login Kode Unik** — Masuk tanpa email/password
-- 🕐 **Jadwal Sholat Real-time** — Countdown menuju adzan berikutnya
-- ✅ **Check-in Mandiri** — Absen langsung dari HP saat waktu sholat masuk
-- 📝 **Pengajuan Izin** — Ajukan izin sakit/khidmat dengan approval workflow
-- 📊 **Dashboard Pribadi** — Lihat statistik kehadiran (hadir, telat, alfa, izin)
-- 📜 **Riwayat Absensi** — Filter per minggu, bulan, atau semester
-- 🤲 **Tracking Sholat Sunnah** — Catat ibadah sunnah harian
-
 ### 👨‍💼 Fitur Admin
-- 📋 **Bulk Attendance** — Input absensi banyak santri sekaligus
-- 📊 **Rekap Global** — Lihat absensi seluruh santri per hari/minggu/bulan
-- ✅ **Approval Izin** — Setujui atau tolak pengajuan izin santri
-- 👥 **Manajemen Data Santri** — CRUD data pengguna
-- 🔑 **Manajemen Kode Akses** — Generate dan kelola kode login
-- 📤 **Export Data** — Download laporan dalam format Excel
-- ⚙️ **Pengaturan Sistem** — Atur jadwal sholat dan toleransi waktu
+- 🔐 **Login kode unik admin** — Santri tidak dapat login
+- ✅ **Absensi massal** — Pilih Hadir (H), Sakit (S), Izin (I), atau Alfa (A)
+- 🟠 **Alfa otomatis** — Status yang tidak diubah akan tersimpan sebagai Alfa
+- 📖 **Empat sesi mengaji** — Subuh, Dzuhur, Ashar, dan Isya
+- 👥 **Data peserta** — Tambah, ubah, dan nonaktifkan data santri tanpa membuat akun
+- 📊 **Rekap dan CSV** — Lihat dan unduh catatan per periode dan sesi
+- ⚙️ **Pengaturan waktu** — Atur jam sesi melalui web admin
 
 ---
 
@@ -76,7 +68,6 @@
 | [PostgreSQL](https://www.postgresql.org/) | Relational Database |
 | [Better Auth](https://www.better-auth.com/) | Authentication Framework |
 | [Zod](https://zod.dev/) | Schema Validation |
-| [ExcelJS](https://github.com/exceljs/exceljs) | Excel Export |
 | [Helmet](https://helmetjs.github.io/) | Security Headers |
 
 ### Infrastructure
@@ -99,37 +90,35 @@ manah-tracking/
 │   │   │   │   ├── index.ts          # Auth configuration
 │   │   │   │   └── code-login-plugin.ts  # Login via kode unik
 │   │   │   ├── db/
-│   │   │   │   ├── schema.ts         # Drizzle ORM schema (10 tabel)
+│   │   │   │   ├── schema.ts         # Schema admin, peserta, jadwal, dan absensi
 │   │   │   │   ├── index.ts          # Database connection
-│   │   │   │   └── seed.ts           # Seed data awal
+│   │   │   │   └── seed.ts           # Jadwal sesi dan admin awal
 │   │   │   ├── middleware/
 │   │   │   │   ├── auth.middleware.ts # requireAuth, requireAdmin
 │   │   │   │   └── error.middleware.ts
 │   │   │   ├── routes/               # Express route handlers
-│   │   │   │   ├── attendance.routes.ts
+│   │   │   │   ├── recitation.routes.ts
 │   │   │   │   ├── user.routes.ts
 │   │   │   │   └── ...
 │   │   │   ├── services/             # Business logic layer
-│   │   │   │   ├── attendance.service.ts  # Core: check-in, stats, recap
+│   │   │   │   ├── recitation.service.ts  # Peserta, sesi, absensi, rekap
 │   │   │   │   ├── auth.service.ts
 │   │   │   │   └── ...
 │   │   │   └── index.ts              # Express app entry
 │   │   ├── drizzle.config.ts
+│   │   ├── drizzle/                  # SQL migrasi data awal
 │   │   └── package.json
 │   │
 │   └── web/                          # Frontend (React + Vite)
 │       ├── src/
-│       │   ├── components/           # Reusable UI components
-│       │   │   ├── HeroSection.jsx   # Prayer times + check-in
-│       │   │   ├── StatsSection.jsx  # Attendance statistics
-│       │   │   ├── Sidebar.jsx       # User navigation
-│       │   │   ├── SidebarAdmin.jsx  # Admin navigation
-│       │   │   └── layouts/          # UserLayout, AdminLayout
+│       │   ├── components/           # Header, navigation, shared UI
+│       │   │   ├── SidebarAdmin.jsx
+│       │   │   └── layouts/AdminLayout.jsx
 │       │   ├── pages/                # Route pages
-│       │   │   ├── Dashboard.jsx
-│       │   │   ├── GlobalRecap.jsx
 │       │   │   ├── AdminBulkAttendance.jsx
-│       │   │   └── ...
+│       │   │   ├── GlobalRecap.jsx
+│       │   │   ├── DataSantri.jsx
+│       │   │   └── AdminSettings.jsx
 │       │   ├── services/             # API service layer
 │       │   ├── hooks/                # Custom React hooks
 │       │   ├── lib/                  # API client, auth client
@@ -195,16 +184,21 @@ FRONTEND_URL=http://localhost:5173
 PORT=3001
 ```
 
-### 5. Migrasi & Seed Database
+### 5. Schema, migrasi data, dan seed
 
 ```bash
-# Push schema ke database
+# Push schema aplikasi
 cd apps/api
 npm run db:push
 
-# (Opsional) Seed data awal
+# Terapkan migrasi absensi mengaji sekali pada database yang sudah ada:
+# psql "$DATABASE_URL" -f drizzle/0001_recitation_attendance.sql
+
+# Seed jadwal sesi dan admin (opsional)
 npm run db:seed
 ```
+
+Jalankan file migrasi SQL setelah `db:push` untuk membuat tabel mengaji, menjadwalkan empat sesi awal, dan menyalin daftar santri lama. Jalankan migrasi sebelum membuka aplikasi versi baru; migrasi tidak menghapus catatan shalat lama.
 
 ### 6. Jalankan Development Server
 
@@ -222,19 +216,17 @@ Akses:
 
 ## 📊 Database Schema
 
-Sistem menggunakan **10 tabel utama** dengan relasi yang terstruktur:
+Data baru disimpan terpisah dari tabel absensi shalat lama:
 
 ```
-User ──┬── AttendanceRecord (5 waktu × hari)
-       ├── Permit (izin sakit/khidmat)
-       ├── SunnahRecord (tracking sholat sunnah)
-       ├── AccessCode (login tanpa password)
-       ├── Session (auth session)
-       └── ActivityLog (audit trail)
+User (admin) ──┬── AccessCode ── Session
+               └── RecitationAttendance (admin pencatat)
 
-Asrama ──── User (one-to-many)
-PrayerTime ──── AttendanceRecord (reference)
+RecitationStudent ── RecitationAttendance ── RecitationSession
+                     (tanggal, H/S/I/A)      (Subuh/Dzuhur/Ashar/Isya)
 ```
+
+Migrasi menyalin data santri lama sebagai daftar peserta, menonaktifkan kode akses dan sesi santri lama, serta menghapus kredensial akun non-admin. Baris pengguna dan tabel absensi shalat lama tetap disimpan agar histori lama tidak terhapus.
 
 ---
 
@@ -243,19 +235,17 @@ PrayerTime ──── AttendanceRecord (reference)
 | Method | Endpoint | Auth | Deskripsi |
 |--------|----------|------|-----------|
 | `POST` | `/api/auth/login/code` | — | Login dengan kode unik |
-| `POST` | `/api/attendance/check-in` | User | Absensi mandiri |
-| `POST` | `/api/attendance/permit` | User | Ajukan izin |
-| `GET` | `/api/attendance/history` | User | Riwayat absensi |
-| `GET` | `/api/attendance/stats` | User | Statistik kehadiran |
-| `GET` | `/api/attendance/today-status` | User | Status hari ini |
-| `POST` | `/api/attendance/bulk` | Admin | Bulk attendance input |
-| `GET` | `/api/attendance/global` | Admin | Rekap global |
-| `PUT` | `/api/attendance/permit/:id` | Admin | Approve/reject izin |
-| `GET` | `/api/attendance/report` | Admin | Report untuk export |
-| `DELETE` | `/api/attendance/daily` | Admin | Reset absensi harian |
-| `GET` | `/api/dashboard/prayer-times` | User | Jadwal sholat |
-| `GET` | `/api/users` | Admin | Data santri |
-| `GET` | `/api/codes` | Admin | Manajemen kode akses |
+| `POST` | `/api/auth/login/code` | — | Login admin dengan kode unik |
+| `GET` | `/api/recitation/sessions` | Admin | Jadwal empat sesi |
+| `PUT` | `/api/recitation/sessions` | Admin | Ubah jadwal sesi |
+| `GET` | `/api/recitation/students` | Admin | Daftar peserta |
+| `POST` | `/api/recitation/students` | Admin | Tambah peserta |
+| `PATCH` | `/api/recitation/students/:id` | Admin | Ubah/nonaktifkan peserta |
+| `GET` | `/api/recitation/attendance` | Admin | Muat absensi sesi |
+| `PUT` | `/api/recitation/attendance` | Admin | Simpan absensi massal |
+| `GET` | `/api/recitation/recap` | Admin | Rekap periode |
+
+Saat menyimpan absensi, API juga memastikan seluruh santri aktif memiliki catatan; santri yang tidak dikirim atau belum dipilih dicatat sebagai Alfa.
 
 ---
 

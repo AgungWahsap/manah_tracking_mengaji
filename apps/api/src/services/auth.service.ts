@@ -49,5 +49,9 @@ export async function loginWithUniqueCode(code: string) {
         throw new Error("User account is not active");
     }
 
+    if (userRecord.role !== "admin") {
+        throw new Error("Hanya admin yang dapat masuk ke sistem absensi mengaji");
+    }
+
     return userRecord;
 }

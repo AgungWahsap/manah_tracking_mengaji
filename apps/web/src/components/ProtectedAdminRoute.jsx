@@ -33,8 +33,7 @@ const ProtectedAdminRoute = ({ children }) => {
 
     // Role check
     if (user?.role !== 'admin') {
-        // Redirect non-admins to their dashboard
-        return <Navigate to="/" replace />;
+        return <Navigate to="/auth/login" replace />;
     }
 
     return children;

@@ -1,99 +1,73 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLogout } from '../hooks/useAuth';
 import { useUserProfile } from '../hooks/useUser';
+
+const NAV_ITEMS = [
+    { to: '/bulk-attendance', icon: 'fact_check', label: 'Absensi Mengaji' },
+    { to: '/global-recap', icon: 'analytics', label: 'Rekap Absensi' },
+    { to: '/data-santri', icon: 'groups', label: 'Data Santri' },
+    { to: '/settings', icon: 'schedule', label: 'Waktu Mengaji' },
+];
 
 const SidebarAdmin = ({ onClose }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const { data: user } = useUserProfile();
+    const logoutMutation = useLogout();
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/auth/login');
+        logoutMutation.mutate(undefined, {
+            onSuccess: () => navigate('/auth/login'),
+        });
     };
+
     return (
-        <aside className="w-full h-full flex flex-col glass-panel border-r border-glass-border relative z-20">
-            {/* Logo Area */}
-            <div className="p-6 flex items-center gap-3 border-b border-glass-border">
-                <img src="/logo-pesantren.png" alt="Logo" className="w-12 h-12 object-contain" />
+        <aside className="flex h-full w-full flex-col border-r border-glass-border glass-panel">
+            <div className="flex items-center gap-3 border-b border-glass-border p-6">
+                <img src="/logo-pesantren.png" alt="Logo Pesantren" className="h-12 w-12 object-contain" />
                 <div>
-                    <h1 className="font-bold text-lg tracking-tight text-white">Manah Tracking</h1>
-                    <p className="text-xs text-gray-400">Admin Panel</p>
+                    <h1 className="text-lg font-bold tracking-tight text-white">Absensi Mengaji</h1>
+                    <p className="text-xs text-gray-400">Panel Admin</p>
                 </div>
             </div>
 
-
-            {/* Navigation Links */}
-            <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
-                <div className="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Main Menu</div>
-
-                {/* Rekap Real-time */}
-                <Link to="/global-recap" onClick={onClose} className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all group ${location.pathname === '/global-recap' ? 'bg-primary/40 border border-gold/20 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-                    <span className={`material-icons-round transition-colors ${location.pathname === '/global-recap' ? 'text-gold' : 'group-hover:text-gold/80'}`}>dashboard</span>
-                    <span className="font-medium">Rekap Real-time</span>
-                </Link>
-
-                {/* Absensi Massal */}
-                <Link to="/bulk-attendance" onClick={onClose} className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all group ${location.pathname === '/bulk-attendance' ? 'bg-primary/40 border border-gold/20 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-                    <span className={`material-icons-round transition-colors ${location.pathname === '/bulk-attendance' ? 'text-gold' : 'group-hover:text-gold/80'}`}>groups</span>
-                    <span className="font-medium">Absensi Massal</span>
-                </Link>
-
-                {/* Persetujuan Ijin */}
-                <Link to="/permit-approval" onClick={onClose} className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all group ${location.pathname === '/permit-approval' ? 'bg-primary/40 border border-gold/20 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-                    <span className={`material-icons-round transition-colors ${location.pathname === '/permit-approval' ? 'text-gold' : 'group-hover:text-gold/80'}`}>assignment_turned_in</span>
-                    <span className="font-medium">Persetujuan Ijin</span>
-                </Link>
-
-                {/* Laporan Sunnah */}
-                <Link to="/sunnah-report" onClick={onClose} className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all group ${location.pathname === '/sunnah-report' ? 'bg-primary/40 border border-gold/20 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-                    <span className={`material-icons-round transition-colors ${location.pathname === '/sunnah-report' ? 'text-gold' : 'group-hover:text-gold/80'}`}>volunteer_activism</span>
-                    <span className="font-medium">Laporan Sunnah</span>
-                </Link>
-
-                {/* Manajemen Kode */}
-                <Link to="/code-management" onClick={onClose} className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all group ${location.pathname === '/code-management' ? 'bg-primary/40 border border-gold/20 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-                    <span className={`material-icons-round transition-colors ${location.pathname === '/code-management' ? 'text-gold' : 'group-hover:text-gold/80'}`}>qr_code</span>
-                    <span className="font-medium">Manajemen Kode</span>
-                </Link>
-
-                {/* Data Santri/Staff */}
-                <Link to="/data-santri" onClick={onClose} className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all group ${location.pathname === '/data-santri' ? 'bg-primary/40 border border-gold/20 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-                    <span className={`material-icons-round transition-colors ${location.pathname === '/data-santri' ? 'text-gold' : 'group-hover:text-gold/80'}`}>people</span>
-                    <span className="font-medium">Data Santri/Staff</span>
-                </Link>
-
-                <div className="px-3 mt-6 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Data & Settings</div>
-
-                <Link to="/export-data" onClick={onClose} className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all group ${location.pathname === '/export-data' ? 'bg-primary/40 border border-gold/20 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-                    <span className={`material-icons-round transition-colors ${location.pathname === '/export-data' ? 'text-gold' : 'group-hover:text-gold/80'}`}>file_download</span>
-                    <span className="font-medium">Export Data</span>
-                </Link>
-
-
-
-                <Link to="/settings" onClick={onClose} className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all group ${location.pathname === '/settings' ? 'bg-primary/40 border border-gold/20 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-                    <span className={`material-icons-round transition-colors ${location.pathname === '/settings' ? 'text-gold' : 'group-hover:text-gold/80'}`}>settings</span>
-                    <span className="font-medium">Pengaturan</span>
-                </Link>
+            <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-6">
+                {NAV_ITEMS.map((item) => {
+                    const active = location.pathname === item.to;
+                    return (
+                        <Link
+                            key={item.to}
+                            to={item.to}
+                            onClick={onClose}
+                            className={`group flex items-center gap-3 rounded-lg px-3 py-3 transition-colors ${
+                                active ? 'border border-gold/20 bg-primary/40 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                            }`}
+                        >
+                            <span className={`material-icons-round ${active ? 'text-gold' : 'group-hover:text-gold/80'}`}>{item.icon}</span>
+                            <span className="font-medium">{item.label}</span>
+                        </Link>
+                    );
+                })}
             </nav>
 
-            {/* User Profile */}
-            <div className="p-4 border-t border-glass-border">
-                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-gray-700 to-gray-600 border border-gray-500 overflow-hidden relative">
-                        <img
-                            alt="Admin Avatar"
-                            className="w-full h-full object-cover opacity-90"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2evRczOYJHLWFroVpFKW-eIEXqIYr8TXjlAr0uZzHTMdP57SxouPJI4T110wcBKCSbTPFhxA5u0mne1enHhlIVweIwr9C3vIKZ7UXtUAyi_5bfwjUwntCZVxElUjIDpg_DsizcitjePikTdxDP-m0J-uLrT8OkiDpBfjsS6Ug2_tHWAyo7MLRglA5IJdpR82sZJP6ooGYL27o8miaLC0VGb9a8tZfNIIDNUKKtTtCf3ewWLG2wfTBdVekZSxqqRuvqvH91UcsnP48"
-                        />
+            <div className="border-t border-glass-border p-4">
+                <div className="flex items-center gap-3 rounded-lg p-2">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/30 text-gold">
+                        <span className="material-icons-round">admin_panel_settings</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{user?.name || 'Admin'}</p>
-                        <p className="text-xs text-gray-400 truncate">{user?.category || 'Administrator'}</p>
+                    <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-white">{user?.name || 'Admin'}</p>
+                        <p className="truncate text-xs text-gray-400">Administrator</p>
                     </div>
-                    <button onClick={handleLogout} className="text-gray-500 hover:text-white transition-colors" title="Logout">
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        disabled={logoutMutation.isPending}
+                        className="text-gray-400 transition-colors hover:text-white disabled:opacity-50"
+                        title="Keluar"
+                        aria-label="Keluar"
+                    >
                         <span className="material-icons-round text-sm">logout</span>
                     </button>
                 </div>

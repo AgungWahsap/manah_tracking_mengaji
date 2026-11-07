@@ -152,6 +152,47 @@ export const updatePrayerTimesSchema = z.object({
     })),
 });
 
+const recitationStatus = z.enum(["H", "S", "I", "A"]);
+const timeString = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "Format waktu harus HH:mm");
+
+export const recitationScheduleSchema = z.object({
+    updates: z.object({
+        subuh: timeString,
+        dzuhur: timeString,
+        ashar: timeString,
+        isya: timeString,
+    }),
+});
+
+export const recitationStudentSchema = z.object({
+    name: z.string().trim().min(1, "Nama santri wajib diisi").max(255),
+    nis: z.string().trim().max(50).optional().nullable(),
+});
+
+export const updateRecitationStudentSchema = recitationStudentSchema.partial().extend({
+    isActive: z.boolean().optional(),
+});
+
+export const recitationAttendanceSchema = z.object({
+    date: dateString,
+    sessionId: uuidString,
+    attendance: z.array(z.object({
+        studentId: uuidString,
+        status: recitationStatus,
+    })).optional().default([]),
+});
+
+export const recitationAttendanceQuerySchema = z.object({
+    date: dateString,
+    sessionId: uuidString,
+});
+
+export const recitationRecapQuerySchema = z.object({
+    startDate: dateString,
+    endDate: dateString,
+    sessionId: uuidString.optional(),
+});
+
 // ─── Sunnah ──────────────────────────────────────────────────────────
 
 export const submitSunnahSchema = z.object({

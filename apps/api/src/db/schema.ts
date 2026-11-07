@@ -11,6 +11,7 @@ import {
     real,
     jsonb,
     pgEnum,
+    uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 // ─── Enums ───────────────────────────────────────────────────────────
@@ -79,6 +80,13 @@ export const sunnahPracticeEnum = pgEnum("sunnah_practice", [
     "badiyah_maghrib",
     "qobliyah_isya",
     "badiyah_isya"
+]);
+
+export const recitationAttendanceStatusEnum = pgEnum("recitation_attendance_status", [
+    "H",
+    "S",
+    "I",
+    "A",
 ]);
 
 // ─── Better Auth Tables ──────────────────────────────────────────────
@@ -153,6 +161,49 @@ export const asrama = pgTable("asrama", {
     roomNumber: varchar("room_number", { length: 50 }), // e.g. "101", "Lt. 2"
     createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+export const recitationStudent = pgTable("recitation_student", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    nis: varchar("nis", { length: 50 }).unique(),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const recitationSession = pgTable("recitation_session", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: varchar("name", { length: 20 }).notNull().unique(),
+    scheduledTime: time("scheduled_time").notNull(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const recitationAttendance = pgTable(
+    "recitation_attendance",
+    {
+        id: uuid("id").defaultRandom().primaryKey(),
+        studentId: uuid("student_id")
+            .notNull()
+            .references(() => recitationStudent.id),
+        sessionId: uuid("session_id")
+            .notNull()
+            .references(() => recitationSession.id),
+        date: date("date").notNull(),
+        status: recitationAttendanceStatusEnum("status").notNull(),
+        recordedBy: text("recorded_by")
+            .notNull()
+            .references(() => user.id),
+        createdAt: timestamp("created_at").notNull().defaultNow(),
+        updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    },
+    (table) => ({
+        studentSessionDateUnique: uniqueIndex("recitation_attendance_student_session_date_unique").on(
+            table.studentId,
+            table.sessionId,
+            table.date,
+        ),
+    }),
+);
 
 export const accessCode = pgTable("access_code", {
     id: uuid("id").defaultRandom().primaryKey(),

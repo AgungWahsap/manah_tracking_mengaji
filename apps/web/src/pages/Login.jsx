@@ -13,10 +13,10 @@ const Login = () => {
         loginMutation.mutate(code, {
             onSuccess: (data) => {
                 const user = data?.user;
-                if (user?.role === 'admin' || user?.role === 'superadmin') {
-                    navigate('/global-recap');
+                if (user?.role === 'admin') {
+                    navigate('/bulk-attendance');
                 } else {
-                    navigate('/');
+                    navigate('/auth/login');
                 }
             },
         });
@@ -44,7 +44,7 @@ const Login = () => {
                             Manah Tracking
                         </h1>
                         <p className="text-gray-400 text-sm font-light tracking-wide uppercase text-center">
-                            Absensi Berjamaah
+                            Absensi Mengaji
                         </p>
                     </div>
 
@@ -52,7 +52,7 @@ const Login = () => {
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div className="relative group">
                             <label className="block text-xs font-medium text-gold-400 mb-2 ml-1 uppercase tracking-wider" htmlFor="unique_code">
-                                Kode Unik
+                                Kode Unik Admin
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -63,7 +63,7 @@ const Login = () => {
                                     className="block w-full pl-10 pr-3 py-3.5 bg-black/20 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500 transition-all duration-300 sm:text-sm font-display tracking-widest text-center"
                                     id="unique_code"
                                     name="unique_code"
-                                    placeholder="M - X X X X"
+                                    placeholder="Masukkan kode admin"
                                     type="text"
                                     value={code}
                                     onChange={(e) => setCode(e.target.value)}
@@ -81,7 +81,7 @@ const Login = () => {
                             >
                                 <span className="text-[#0A1F1A]">{loginMutation.isPending ? 'Memproses...' : 'Masuk'}</span>
                             </button>
-                            {loginMutation.isError && <p className="mt-2 text-center text-red-500 text-sm">{loginMutation.error?.message || 'Kode unik salah atau tidak ditemukan.'}</p>}
+                            {loginMutation.isError && <p className="mt-2 text-center text-red-500 text-sm">{loginMutation.error?.message || 'Kode admin tidak valid atau tidak ditemukan.'}</p>}
                         </div>
                     </form>
 
