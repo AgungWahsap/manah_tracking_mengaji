@@ -105,12 +105,15 @@ app.use(errorHandler);
 
 // ─── Start Server ────────────────────────────────────────────────────
 
-// Vercel akan menangani ini secara otomatis, tapi biarkan untuk local dev
-app.listen(PORT, () => {
-    console.log(`\n🚀 Manah Tracking API running on http://localhost:${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-    console.log(`🔧 Environment: ${process.env.NODE_ENV || "development"}\n`);
-});
+// Vercel invokes the exported Express app as a function; local development
+// still starts a listening server.
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`\n🚀 Manah Tracking API running on http://localhost:${PORT}`);
+        console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+        console.log(`🔧 Environment: ${process.env.NODE_ENV || "development"}\n`);
+    });
+}
 
 // PENTING: Export default app agar Vercel bisa membacanya sebagai Serverless Function
 export default app;

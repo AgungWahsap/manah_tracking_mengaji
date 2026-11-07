@@ -255,10 +255,12 @@ Impor Excel menerima `.xlsx` maksimal 3 MB dengan kolom `Nama Santri` (wajib); k
 ## 🚢 Deployment
 
 Proyek ini di-deploy ke **Vercel** sebagai dua project terpisah:
-- `apps/web` → Frontend (Static/SSR)
-- `apps/api` → Backend (Serverless Functions)
+- `apps/web` → Frontend (Vite)
+- `apps/api` → Backend (Express Serverless Function)
 
 Frontend menggunakan **Vercel Rewrites** (`vercel.json`) untuk mem-proxy request `/api/*` ke backend, sehingga menghindari masalah CORS dan cookie cross-origin.
+
+Atur **Root Directory** project frontend ke `apps/web` dan project API ke `apps/api`. Project API memerlukan `DATABASE_URL`, `BETTER_AUTH_SECRET`, dan `FRONTEND_URL` yang menunjuk ke domain frontend, misalnya `https://manah-tracking2.vercel.app`. Setelah deployment, pastikan `https://<domain-api>/api/health` mengembalikan status `ok`.
 
 ---
 
