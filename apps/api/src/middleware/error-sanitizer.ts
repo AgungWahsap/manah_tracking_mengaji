@@ -29,6 +29,8 @@ const SAFE_ERROR_PREFIXES = [
 
     // User
     "User not found",
+    "Kelas tidak ditemukan",
+    "Kelas tidak aktif",
     "Access code already exists",
 
     // Export

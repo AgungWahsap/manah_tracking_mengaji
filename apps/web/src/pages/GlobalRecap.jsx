@@ -16,28 +16,28 @@ const getJakartaDate = () => {
 
 const STATUS_LABELS = { H: 'Hadir', S: 'Sakit', I: 'Izin', A: 'Alfa' };
 
-const escapeCsv = (value) => {
-    const text = String(value ?? '');
-    const safeText = /^[=+\-@]/.test(text) ? `'${text}` : text;
-    return `"${safeText.replaceAll('"', '""')}"`;
-};
-
 const GlobalRecap = () => {
     const { toggleSidebar } = useOutletContext();
     const today = getJakartaDate();
     const [startDate, setStartDate] = useState(today);
     const [endDate, setEndDate] = useState(today);
     const [sessions, setSessions] = useState([]);
+    const [classes, setClasses] = useState([]);
+    const [classId, setClassId] = useState('');
     const [sessionId, setSessionId] = useState('');
     const [records, setRecords] = useState([]);
     const [totals, setTotals] = useState({ H: 0, S: 0, I: 0, A: 0 });
     const [loading, setLoading] = useState(true);
+    const [exporting, setExporting] = useState(false);
     const [error, setError] = useState('');
 
     useEffect(() => {
         recitationService.getSessions()
             .then((response) => setSessions(response.data || []))
             .catch((loadError) => setError(loadError.message || 'Gagal memuat jadwal sesi.'));
+        recitationService.getClasses({ includeInactive: true })
+            .then((response) => setClasses(response.data || []))
+            .catch((loadError) => setError(loadError.message || 'Gagal memuat daftar kelas.'));
     }, []);
 
     useEffect(() => {
@@ -51,6 +51,7 @@ const GlobalRecap = () => {
                     startDate,
                     endDate,
                     ...(sessionId ? { sessionId } : {}),
+                    ...(classId ? { classId } : {}),
                 });
                 if (!cancelled) {
                     setRecords(response.data || []);
@@ -64,26 +65,31 @@ const GlobalRecap = () => {
         };
         loadRecap();
         return () => { cancelled = true; };
-    }, [startDate, endDate, sessionId]);
+    }, [startDate, endDate, sessionId, classId]);
 
-    const handleExport = () => {
-        const rows = [
-            ['Tanggal', 'Waktu Mengaji', 'Nama Santri', 'NIS', 'Status'],
-            ...records.map((record) => [
-                record.date,
-                record.sessionName,
-                record.studentName,
-                record.nis || '',
-                STATUS_LABELS[record.status] || record.status,
-            ]),
-        ];
-        const csv = `\uFEFF${rows.map((row) => row.map(escapeCsv).join(',')).join('\r\n')}`;
-        const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `rekap-mengaji-${startDate}-${endDate}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
+    const handleExport = async () => {
+        setExporting(true);
+        setError('');
+        try {
+            const response = await recitationService.exportRecap({
+                startDate,
+                endDate,
+                ...(sessionId ? { sessionId } : {}),
+                ...(classId ? { classId } : {}),
+            });
+            const url = URL.createObjectURL(response);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `rekap-mengaji-${startDate}-${endDate}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } catch (exportError) {
+            setError(exportError.message || 'Gagal mengunduh rekap Excel.');
+        } finally {
+            setExporting(false);
+        }
     };
 
     return (
@@ -107,13 +113,20 @@ const GlobalRecap = () => {
                                 {sessions.map((session) => <option key={session.id} value={session.id}>{session.name[0].toUpperCase() + session.name.slice(1)}</option>)}
                             </select>
                         </label>
+                        <label className="text-sm text-gray-300">
+                            Kelas
+                            <select value={classId} onChange={(event) => setClassId(event.target.value)} className="mt-2 block min-w-44 rounded-lg border border-white/10 bg-black/30 p-3 text-white">
+                                <option value="">Semua kelas</option>
+                                {classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                            </select>
+                        </label>
                         <button
                             type="button"
                             onClick={handleExport}
-                            disabled={records.length === 0}
+                            disabled={records.length === 0 || exporting}
                             className="rounded-lg border border-white/10 px-4 py-3 text-sm font-medium text-gray-200 hover:bg-white/5 disabled:opacity-40"
                         >
-                            Unduh CSV
+                            {exporting ? 'Menyiapkan Excel...' : 'Unduh Excel'}
                         </button>
                     </div>
                 </section>
@@ -139,6 +152,7 @@ const GlobalRecap = () => {
                                 <thead className="bg-white/5 text-xs uppercase text-gray-400">
                                     <tr>
                                         <th className="p-4">Tanggal</th>
+                                        <th className="p-4">Kelas</th>
                                         <th className="p-4">Waktu</th>
                                         <th className="p-4">Nama Santri</th>
                                         <th className="p-4">NIS</th>
@@ -149,6 +163,7 @@ const GlobalRecap = () => {
                                     {records.map((record) => (
                                         <tr key={record.id} className="hover:bg-white/[0.03]">
                                             <td className="p-4 text-gray-300">{record.date}</td>
+                                            <td className="p-4 text-gray-300">{record.className || '—'}</td>
                                             <td className="p-4 capitalize text-gray-300">{record.sessionName} <span className="text-gray-500">{record.scheduledTime.slice(0, 5)}</span></td>
                                             <td className="p-4 font-medium text-white">{record.studentName}</td>
                                             <td className="p-4 text-gray-400">{record.nis || '—'}</td>

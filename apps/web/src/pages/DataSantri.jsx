@@ -3,11 +3,12 @@ import { useOutletContext } from 'react-router-dom';
 import HeaderAdmin from '../components/HeaderAdmin';
 import { recitationService } from '../services/recitation.service';
 
-const EMPTY_FORM = { name: '', nis: '' };
+const EMPTY_FORM = { name: '', nis: '', classId: '' };
 
 const DataSantri = () => {
     const { toggleSidebar } = useOutletContext();
     const [students, setStudents] = useState([]);
+    const [classes, setClasses] = useState([]);
     const [search, setSearch] = useState('');
     const [form, setForm] = useState(EMPTY_FORM);
     const [editingId, setEditingId] = useState('');
@@ -33,6 +34,12 @@ const DataSantri = () => {
         loadStudents();
     }, [search]);
 
+    useEffect(() => {
+        recitationService.getClasses({ includeInactive: true })
+            .then((response) => setClasses(response.data || []))
+            .catch((loadError) => setError(loadError.message || 'Gagal memuat kelas.'));
+    }, []);
+
     const resetForm = () => {
         setForm(EMPTY_FORM);
         setEditingId('');
@@ -44,7 +51,7 @@ const DataSantri = () => {
         setError('');
         setNotice('');
         try {
-            const payload = { name: form.name.trim(), nis: form.nis.trim() || null };
+            const payload = { name: form.name.trim(), nis: form.nis.trim() || null, classId: form.classId };
             if (editingId) {
                 await recitationService.updateStudent(editingId, payload);
                 setNotice('Data santri berhasil diperbarui.');
@@ -63,7 +70,7 @@ const DataSantri = () => {
 
     const handleEdit = (student) => {
         setEditingId(student.id);
-        setForm({ name: student.name, nis: student.nis || '' });
+        setForm({ name: student.name, nis: student.nis || '', classId: student.classId || '' });
         setNotice('');
         setError('');
     };
@@ -109,6 +116,18 @@ const DataSantri = () => {
                                 placeholder="Nomor induk"
                             />
                         </label>
+                        <label className="text-sm text-gray-300">
+                            Kelas
+                            <select
+                                required
+                                value={form.classId}
+                                onChange={(event) => setForm((current) => ({ ...current, classId: event.target.value }))}
+                                className="mt-2 block w-full rounded-lg border border-white/10 bg-black/30 p-3 text-white"
+                            >
+                                <option value="">Pilih kelas</option>
+                                {classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                            </select>
+                        </label>
                         <button
                             type="submit"
                             disabled={saving}
@@ -142,11 +161,12 @@ const DataSantri = () => {
                         <div className="p-10 text-center text-gray-400">Memuat daftar santri...</div>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="w-full min-w-[600px] text-left">
+                            <table className="w-full min-w-[700px] text-left">
                                 <thead className="bg-white/5 text-xs uppercase text-gray-400">
                                     <tr>
                                         <th className="p-4">Nama</th>
                                         <th className="p-4">NIS</th>
+                                        <th className="p-4">Kelas</th>
                                         <th className="p-4">Status</th>
                                         <th className="p-4 text-right">Aksi</th>
                                     </tr>
@@ -156,6 +176,7 @@ const DataSantri = () => {
                                         <tr key={student.id} className="hover:bg-white/[0.03]">
                                             <td className="p-4 font-medium text-white">{student.name}</td>
                                             <td className="p-4 text-gray-400">{student.nis || '—'}</td>
+                                            <td className="p-4 text-gray-400">{classes.find((item) => item.id === student.classId)?.name || '—'}</td>
                                             <td className="p-4">
                                                 <span className={`rounded-full px-2.5 py-1 text-xs ${student.isActive ? 'bg-green-500/10 text-green-300' : 'bg-gray-500/10 text-gray-400'}`}>
                                                     {student.isActive ? 'Aktif' : 'Nonaktif'}
@@ -172,7 +193,7 @@ const DataSantri = () => {
                                         </tr>
                                     ))}
                                     {students.length === 0 && (
-                                        <tr><td colSpan="4" className="p-8 text-center text-gray-400">Belum ada data santri.</td></tr>
+                                        <tr><td colSpan="5" className="p-8 text-center text-gray-400">Belum ada data santri.</td></tr>
                                     )}
                                 </tbody>
                             </table>

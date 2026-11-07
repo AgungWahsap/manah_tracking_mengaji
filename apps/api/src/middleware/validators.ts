@@ -167,15 +167,29 @@ export const recitationScheduleSchema = z.object({
 export const recitationStudentSchema = z.object({
     name: z.string().trim().min(1, "Nama santri wajib diisi").max(255),
     nis: z.string().trim().max(50).optional().nullable(),
+    classId: uuidString,
 });
 
 export const updateRecitationStudentSchema = recitationStudentSchema.partial().extend({
     isActive: z.boolean().optional(),
 });
 
+export const recitationClassSchema = z.object({
+    name: z.string().trim().min(1, "Nama kelas wajib diisi").max(100),
+});
+
+export const updateRecitationClassSchema = recitationClassSchema.partial().extend({
+    isActive: z.boolean().optional(),
+});
+
+export const recitationImportSchema = z.object({
+    fileBase64: z.string().min(1).max(4_200_000).regex(/^[A-Za-z0-9+/]*={0,2}$/, "Konten file Excel tidak valid"),
+});
+
 export const recitationAttendanceSchema = z.object({
     date: dateString,
     sessionId: uuidString,
+    classId: uuidString,
     attendance: z.array(z.object({
         studentId: uuidString,
         status: recitationStatus,
@@ -185,12 +199,14 @@ export const recitationAttendanceSchema = z.object({
 export const recitationAttendanceQuerySchema = z.object({
     date: dateString,
     sessionId: uuidString,
+    classId: uuidString,
 });
 
 export const recitationRecapQuerySchema = z.object({
     startDate: dateString,
     endDate: dateString,
     sessionId: uuidString.optional(),
+    classId: uuidString.optional(),
 });
 
 // ─── Sunnah ──────────────────────────────────────────────────────────

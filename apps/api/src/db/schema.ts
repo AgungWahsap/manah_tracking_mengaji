@@ -162,10 +162,19 @@ export const asrama = pgTable("asrama", {
     createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const recitationClass = pgTable("recitation_class", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: varchar("name", { length: 100 }).notNull().unique(),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const recitationStudent = pgTable("recitation_student", {
     id: uuid("id").defaultRandom().primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
     nis: varchar("nis", { length: 50 }).unique(),
+    classId: uuid("class_id").references(() => recitationClass.id),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),

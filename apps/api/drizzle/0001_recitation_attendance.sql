@@ -5,14 +5,30 @@ EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
 
-CREATE TABLE IF NOT EXISTS recitation_student (
+CREATE TABLE IF NOT EXISTS recitation_class (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    name varchar(255) NOT NULL,
-    nis varchar(50) UNIQUE,
+    name varchar(100) NOT NULL UNIQUE,
     is_active boolean NOT NULL DEFAULT true,
     created_at timestamp NOT NULL DEFAULT now(),
     updated_at timestamp NOT NULL DEFAULT now()
 );
+
+INSERT INTO recitation_class (name)
+VALUES ('Belum dikelompokkan')
+ON CONFLICT (name) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS recitation_student (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name varchar(255) NOT NULL,
+    nis varchar(50) UNIQUE,
+    class_id uuid REFERENCES recitation_class(id),
+    is_active boolean NOT NULL DEFAULT true,
+    created_at timestamp NOT NULL DEFAULT now(),
+    updated_at timestamp NOT NULL DEFAULT now()
+);
+
+ALTER TABLE recitation_student
+    ADD COLUMN IF NOT EXISTS class_id uuid REFERENCES recitation_class(id);
 
 CREATE TABLE IF NOT EXISTS recitation_session (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -48,6 +64,10 @@ SELECT name, nis, status <> 'inactive'
 FROM "user"
 WHERE role = 'santri'
 ON CONFLICT DO NOTHING;
+
+UPDATE recitation_student
+SET class_id = (SELECT id FROM recitation_class WHERE name = 'Belum dikelompokkan')
+WHERE class_id IS NULL;
 
 UPDATE access_code
 SET status = 'suspended'

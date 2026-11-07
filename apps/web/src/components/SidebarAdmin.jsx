@@ -6,6 +6,7 @@ import { useUserProfile } from '../hooks/useUser';
 const NAV_ITEMS = [
     { to: '/bulk-attendance', icon: 'fact_check', label: 'Absensi Mengaji' },
     { to: '/global-recap', icon: 'analytics', label: 'Rekap Absensi' },
+    { to: '/classes', icon: 'class', label: 'Kelas & Impor/Export' },
     { to: '/data-santri', icon: 'groups', label: 'Data Santri' },
     { to: '/settings', icon: 'schedule', label: 'Waktu Mengaji' },
 ];

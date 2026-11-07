@@ -29,6 +29,11 @@ async function seed() {
         }
         console.log("  ✅ Recitation sessions seeded");
 
+        await db
+            .insert(schema.recitationClass)
+            .values({ name: "Belum dikelompokkan" })
+            .onConflictDoNothing({ target: schema.recitationClass.name });
+
         // 2. Seed Admin User
         console.log("👤 Seeding admin user...");
         let [admin] = await db

@@ -34,9 +34,7 @@ export const auth = betterAuth({
     // 🛠️ PERBAIKAN FINAL (Strategi Satu Rumah):
     advanced: {
         defaultCookieAttributes: {
-            secure: true,
-            // Kita ubah ke 'lax'. Karena kita sudah pakai Proxy (vercel.json), 
-            // browser HP/Incognito akan lebih senang menerima cookie ini.
+            secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
             httpOnly: true
         }

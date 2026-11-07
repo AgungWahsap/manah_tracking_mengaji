@@ -26,7 +26,7 @@
 | Absensi manual sering tercecer | Digitalisasi penuh dengan database |
 | Rekap absensi sulit dihitung | Rekap dan export CSV berdasarkan periode |
 | Input absensi mengaji secara manual | Input massal digital per sesi |
-| Rekap absensi sulit dihitung | Rekap per santri, sesi, dan periode |
+| Daftar santri perlu dikelompokkan | Kelas dengan impor dan export Excel |
 | Santri tidak membutuhkan akses aplikasi | Login hanya untuk admin |
 
 ---
@@ -39,6 +39,7 @@
 - 🟠 **Alfa otomatis** — Status yang tidak diubah akan tersimpan sebagai Alfa
 - 📖 **Empat sesi mengaji** — Subuh, Dzuhur, Ashar, dan Isya
 - 👥 **Data peserta** — Tambah, ubah, dan nonaktifkan data santri tanpa membuat akun
+- 🏫 **Kelas dan Excel** — Kelompokkan peserta, unduh template `.xlsx`, lalu impor nama/NIS
 - 📊 **Rekap dan CSV** — Lihat dan unduh catatan per periode dan sesi
 - ⚙️ **Pengaturan waktu** — Atur jam sesi melalui web admin
 
@@ -131,12 +132,12 @@ manah-tracking/
 
 ---
 
-## 🚀 Instalasi & Setup
+## 🚀 Instalasi & Setup (Neon + lokal)
 
 ### Prerequisites
 
 - **Node.js** v18+
-- **PostgreSQL** v15+ (atau Docker)
+- **Database Neon PostgreSQL** (PostgreSQL lokal tidak diperlukan)
 - **npm** v9+
 
 ### 1. Clone Repository
@@ -152,33 +153,23 @@ cd Manah-Tracking
 npm install
 ```
 
-### 3. Setup Database
+### 3. Setup database Neon
 
-**Opsi A: Docker (Recommended)**
-
-```bash
-docker-compose up -d
-```
-
-**Opsi B: PostgreSQL Lokal**
-
-Buat database baru di PostgreSQL:
-
-```sql
-CREATE DATABASE manah_tracking;
-```
+1. Buat project Neon dan branch **development** khusus pengujian.
+2. Dari halaman **Connect**, pilih database `neondb` lalu salin connection string PostgreSQL.
+3. Untuk menjalankan Drizzle dari laptop, gunakan koneksi direct jika tersedia; pastikan koneksi menggunakan TLS (`sslmode=require`).
+4. Jangan gunakan branch produksi untuk pengujian atau migrasi.
 
 ### 4. Konfigurasi Environment
 
-```bash
-# Copy file .env.example
-cp apps/api/.env.example apps/api/.env
+```powershell
+Copy-Item apps\api\.env.example apps\api\.env
 ```
 
-Edit `apps/api/.env`:
+Edit `apps\api\.env` dan ganti connection string dengan nilai dari Neon:
 
 ```env
-DATABASE_URL=postgresql://postgres:password@localhost:5432/manah_tracking
+DATABASE_URL=postgresql://USER:PASSWORD@HOST/neondb?sslmode=require
 BETTER_AUTH_SECRET=your-secret-key-here
 FRONTEND_URL=http://localhost:5173
 PORT=3001
@@ -186,24 +177,29 @@ PORT=3001
 
 ### 5. Schema, migrasi data, dan seed
 
-```bash
-# Push schema aplikasi
-cd apps/api
+Jalankan schema Drizzle:
+
+```powershell
+Set-Location apps\api
 npm run db:push
+```
 
-# Terapkan migrasi absensi mengaji sekali pada database yang sudah ada:
-# psql "$DATABASE_URL" -f drizzle/0001_recitation_attendance.sql
+Setelah berhasil, buka **Neon SQL Editor**, pastikan branch development yang benar dipilih, lalu jalankan seluruh isi `apps\api\drizzle\0001_recitation_attendance.sql` satu kali. Migrasi ini menyalin data santri lama dan menonaktifkan akses login non-admin di database yang dipilih; jangan jalankan pada branch produksi.
 
-# Seed jadwal sesi dan admin (opsional)
+Kembali ke PowerShell (masih di `apps\api`) dan seed jadwal serta admin:
+
+```powershell
 npm run db:seed
 ```
 
-Jalankan file migrasi SQL setelah `db:push` untuk membuat tabel mengaji, menjadwalkan empat sesi awal, dan menyalin daftar santri lama. Jalankan migrasi sebelum membuka aplikasi versi baru; migrasi tidak menghapus catatan shalat lama.
+Simpan kode admin yang ditampilkan seed untuk login. File `.env` lokal tidak boleh dibagikan atau dimasukkan ke Git.
 
 ### 6. Jalankan Development Server
 
-```bash
-# Dari root directory — jalankan frontend + backend bersamaan
+```powershell
+# Kembali ke root repository
+Set-Location ..\..
+# Jalankan frontend + backend bersamaan
 npm run dev
 ```
 
@@ -211,6 +207,8 @@ Akses:
 - **Frontend**: [http://localhost:5173](http://localhost:5173)
 - **Backend API**: [http://localhost:3001](http://localhost:3001)
 - **Health Check**: [http://localhost:3001/api/health](http://localhost:3001/api/health)
+
+Gunakan `http://localhost:5173` saat login lokal. Cookie development hanya dinonaktifkan atribut `Secure` untuk HTTP lokal; di production tetap `Secure`.
 
 ---
 
@@ -222,8 +220,8 @@ Data baru disimpan terpisah dari tabel absensi shalat lama:
 User (admin) ──┬── AccessCode ── Session
                └── RecitationAttendance (admin pencatat)
 
-RecitationStudent ── RecitationAttendance ── RecitationSession
-                     (tanggal, H/S/I/A)      (Subuh/Dzuhur/Ashar/Isya)
+RecitationClass ── RecitationStudent ── RecitationAttendance ── RecitationSession
+                                      (tanggal, H/S/I/A)       (Subuh/Dzuhur/Ashar/Isya)
 ```
 
 Migrasi menyalin data santri lama sebagai daftar peserta, menonaktifkan kode akses dan sesi santri lama, serta menghapus kredensial akun non-admin. Baris pengguna dan tabel absensi shalat lama tetap disimpan agar histori lama tidak terhapus.
@@ -234,8 +232,10 @@ Migrasi menyalin data santri lama sebagai daftar peserta, menonaktifkan kode aks
 
 | Method | Endpoint | Auth | Deskripsi |
 |--------|----------|------|-----------|
-| `POST` | `/api/auth/login/code` | — | Login dengan kode unik |
 | `POST` | `/api/auth/login/code` | — | Login admin dengan kode unik |
+| `GET/POST/PATCH` | `/api/recitation/classes` | Admin | Kelola kelas |
+| `GET` | `/api/recitation/classes/:id/template` | Admin | Unduh template/daftar kelas Excel |
+| `POST` | `/api/recitation/classes/:id/import` | Admin | Impor nama dan NIS dari Excel |
 | `GET` | `/api/recitation/sessions` | Admin | Jadwal empat sesi |
 | `PUT` | `/api/recitation/sessions` | Admin | Ubah jadwal sesi |
 | `GET` | `/api/recitation/students` | Admin | Daftar peserta |
@@ -246,6 +246,7 @@ Migrasi menyalin data santri lama sebagai daftar peserta, menonaktifkan kode aks
 | `GET` | `/api/recitation/recap` | Admin | Rekap periode |
 
 Saat menyimpan absensi, API juga memastikan seluruh santri aktif memiliki catatan; santri yang tidak dikirim atau belum dipilih dicatat sebagai Alfa.
+Impor Excel menerima `.xlsx` maksimal 3 MB dengan kolom `Nama Santri` (wajib); kolom `NIS` opsional. Baris kosong diabaikan, data cocok diperbarui, peserta baru ditambahkan, dan santri yang tidak terdapat dalam file tidak dihapus.
 
 ---
 

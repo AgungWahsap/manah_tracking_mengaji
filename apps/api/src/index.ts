@@ -48,7 +48,7 @@ app.use(
 app.use(morgan("dev"));
 
 // Body parsing
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // ─── Health Check & Root ─────────────────────────────────────────────

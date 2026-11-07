@@ -24,6 +24,8 @@ const getJakartaDate = () => {
 const AdminBulkAttendance = () => {
     const { toggleSidebar } = useOutletContext();
     const [sessions, setSessions] = useState([]);
+    const [classes, setClasses] = useState([]);
+    const [classId, setClassId] = useState('');
     const [sessionId, setSessionId] = useState('');
     const [date, setDate] = useState(getJakartaDate);
     const [students, setStudents] = useState([]);
@@ -40,13 +42,15 @@ const AdminBulkAttendance = () => {
             setLoading(true);
             setError('');
             try {
-                const [sessionResponse, studentResponse] = await Promise.all([
+                const [sessionResponse, classResponse] = await Promise.all([
                     recitationService.getSessions(),
-                    recitationService.getStudents(),
+                    recitationService.getClasses(),
                 ]);
                 const nextSessions = sessionResponse.data || [];
                 setSessions(nextSessions);
-                setStudents(studentResponse.data || []);
+                const nextClasses = classResponse.data || [];
+                setClasses(nextClasses);
+                setClassId((current) => current || nextClasses.find((item) => item.isActive)?.id || '');
                 setSessionId((current) => current || nextSessions[0]?.id || '');
             } catch (loadError) {
                 setError(loadError.message || 'Gagal memuat data absensi.');
@@ -58,18 +62,25 @@ const AdminBulkAttendance = () => {
     }, []);
 
     useEffect(() => {
-        if (!sessionId || !date) return;
+        if (!sessionId || !date || !classId) {
+            setStudents([]);
+            setStatuses({});
+            return;
+        }
         let cancelled = false;
         const loadAttendance = async () => {
             setLoadingAttendance(true);
             setError('');
+            setStudents([]);
+            setStatuses({});
             try {
-                const response = await recitationService.getAttendance(date, sessionId);
+                const response = await recitationService.getAttendance(date, sessionId, classId);
                 if (!cancelled) {
                     const nextStatuses = {};
                     (response.data || []).forEach((student) => {
                         nextStatuses[student.id] = student.status || 'A';
                     });
+                    setStudents(response.data || []);
                     setStatuses(nextStatuses);
                 }
             } catch (loadError) {
@@ -80,7 +91,7 @@ const AdminBulkAttendance = () => {
         };
         loadAttendance();
         return () => { cancelled = true; };
-    }, [date, sessionId]);
+    }, [date, sessionId, classId]);
 
     const filteredStudents = useMemo(() => {
         const searchText = search.trim().toLowerCase();
@@ -97,10 +108,10 @@ const AdminBulkAttendance = () => {
     };
 
     const handleSave = async () => {
-        if (!sessionId || students.length === 0) return;
+        if (!sessionId || !classId || students.length === 0) return;
         const alphaCount = students.filter((student) => (statuses[student.id] || 'A') === 'A').length;
         if (!window.confirm(
-            `Simpan absensi ${currentSession?.name || ''} tanggal ${date} untuk ${students.length} santri? ${alphaCount} santri akan tercatat Alfa (A).`,
+            `Simpan absensi kelas ${currentClass?.name || ''}, sesi ${currentSession?.name || ''} tanggal ${date} untuk ${students.length} santri? ${alphaCount} santri akan tercatat Alfa (A).`,
         )) return;
         setSaving(true);
         setError('');
@@ -109,6 +120,7 @@ const AdminBulkAttendance = () => {
             const response = await recitationService.saveAttendance({
                 date,
                 sessionId,
+                classId,
                 attendance: students.map((student) => ({
                     studentId: student.id,
                     status: statuses[student.id] || 'A',
@@ -123,6 +135,7 @@ const AdminBulkAttendance = () => {
     };
 
     const currentSession = sessions.find((session) => session.id === sessionId);
+    const currentClass = classes.find((item) => item.id === classId);
 
     return (
         <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 pb-8 md:px-8">
@@ -131,7 +144,7 @@ const AdminBulkAttendance = () => {
                 <section className="glass-panel rounded-xl border border-glass-border p-6">
                     <h1 className="text-2xl font-bold text-white">Absensi Mengaji</h1>
                     <p className="mt-1 text-sm text-gray-400">Tentukan status setiap santri, lalu simpan absensi untuk sesi yang dipilih.</p>
-                    <div className="mt-6 grid gap-4 md:grid-cols-3">
+                    <div className="mt-6 grid gap-4 md:grid-cols-4">
                         <label className="text-sm text-gray-300">
                             Tanggal
                             <input
@@ -156,6 +169,18 @@ const AdminBulkAttendance = () => {
                             </select>
                         </label>
                         <label className="text-sm text-gray-300">
+                            Kelas
+                            <select
+                                value={classId}
+                                onChange={(event) => setClassId(event.target.value)}
+                                className="mt-2 block w-full rounded-lg border border-white/10 bg-black/30 p-3 text-white"
+                            >
+                                {classes.filter((item) => item.isActive).map((item) => (
+                                    <option key={item.id} value={item.id}>{item.name}</option>
+                                ))}
+                            </select>
+                        </label>
+                        <label className="text-sm text-gray-300">
                             Cari santri
                             <input
                                 type="search"
@@ -176,14 +201,14 @@ const AdminBulkAttendance = () => {
                         <div>
                             <h2 className="font-semibold text-white">
                                 {currentSession ? `${currentSession.name[0].toUpperCase()}${currentSession.name.slice(1)}` : 'Pilih waktu'}
-                                {' — '}{date}
+                                {' — '}{currentClass?.name || 'Pilih kelas'}{' — '}{date}
                             </h2>
                             <p className="mt-1 text-xs text-gray-400">Status santri yang tidak diubah otomatis tersimpan sebagai Alfa (A).</p>
                         </div>
                         <button
                             type="button"
                             onClick={handleSave}
-                            disabled={loading || loadingAttendance || saving || students.length === 0 || !sessionId}
+                            disabled={loading || loadingAttendance || saving || students.length === 0 || !sessionId || !classId}
                             className="rounded-lg bg-green-600 px-5 py-2.5 font-semibold text-white hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {saving ? 'Menyimpan...' : 'Simpan Absensi'}

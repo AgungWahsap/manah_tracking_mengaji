@@ -5,6 +5,7 @@ import GlobalRecap from './pages/GlobalRecap';
 import DataSantri from './pages/DataSantri';
 import AdminSettings from './pages/AdminSettings';
 import AdminBulkAttendance from './pages/AdminBulkAttendance';
+import RecitationClasses from './pages/RecitationClasses';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import AdminLayout from './components/layouts/AdminLayout';
 
@@ -19,6 +20,7 @@ function App() {
                     <Route index element={<Navigate to="/bulk-attendance" replace />} />
                     <Route path="/bulk-attendance" element={<AdminBulkAttendance />} />
                     <Route path="/global-recap" element={<GlobalRecap />} />
+                    <Route path="/classes" element={<RecitationClasses />} />
                     <Route path="/data-santri" element={<DataSantri />} />
                     <Route path="/settings" element={<AdminSettings />} />
                 </Route>
